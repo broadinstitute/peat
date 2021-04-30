@@ -1,9 +1,9 @@
 mod error;
 mod peatcode;
 mod expression;
-mod read;
 mod value;
 mod parse;
+mod version;
 
 use error::Error;
 use std::env;
@@ -23,7 +23,13 @@ fn get_input_file_name() -> Result<String, Error> {
 
 pub fn run() -> Result<(), Error> {
     let input_file_name = get_input_file_name()?;
-
-    println!("Input file: {}", input_file_name);
+    let peat_code = parse::parse_file(input_file_name.as_str())?;
+    println!("Parsed some PeatCode!");
+    println!("Peat version is {}", peat_code.version);
+    for declaration in peat_code.declarations {
+        println!("{}={}", declaration.name, declaration.expression);
+    }
+    println!("Body:");
+    println!("{}", peat_code.body);
     Ok(())
 }
