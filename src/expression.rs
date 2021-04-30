@@ -1,5 +1,6 @@
-enum Expression {
+pub(crate) enum Expression {
     UIntLiteral(u64),
+    BoolLiteral(bool),
     Variable(String)
 }
 

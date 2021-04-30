@@ -2,6 +2,8 @@ mod error;
 mod peatcode;
 mod expression;
 mod read;
+mod value;
+mod parse;
 
 use error::Error;
 use std::env;
