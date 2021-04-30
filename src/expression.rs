@@ -4,7 +4,7 @@ pub(crate) enum Expression {
     Variable(String)
 }
 
-pub struct Declaration {
-    name: String,
-    expression: Expression
+pub(crate) struct Declaration {
+    pub(crate) name: String,
+    pub(crate) expression: Expression
 }
