@@ -1,0 +1,7 @@
+Peat 1.0
+X=1
+Y=true
+Z=X
+===
+echo "Hello!"
+
