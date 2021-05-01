@@ -6,8 +6,7 @@ use crate::{
     peatcode::PeatCode,
     version::Version,
 };
-use std::fs::File;
-use std::io::{BufReader, BufRead, Lines};
+use std::io::{BufReader, BufRead, Lines, Read};
 
 fn parse_version_line(line: &str) -> Result<Version, Error> {
     if line.starts_with("Peat") {
@@ -64,13 +63,13 @@ fn is_header_end_line(line: &str) -> bool {
     line == HEADER_END_LINE
 }
 
-type FileLines = Lines<BufReader<File>>;
+type InputLines = Lines<BufReader<Box<dyn Read>>>;
 
-fn read_next_line(lines: &mut FileLines) -> Result<String, Error> {
+fn read_next_line(lines: &mut InputLines) -> Result<String, Error> {
     Ok(lines.next().ok_or(Error::from("File is incomplete."))??)
 }
 
-fn parse_declarations(lines: &mut FileLines)
+fn parse_declarations(lines: &mut InputLines)
                       -> Result<Vec<Declaration>, Error> {
     let mut declarations = Vec::<Declaration>::new();
     loop {
@@ -83,7 +82,7 @@ fn parse_declarations(lines: &mut FileLines)
     }
 }
 
-fn parse_body(lines: &mut FileLines) -> Result<String, Error> {
+fn parse_body(lines: &mut InputLines) -> Result<String, Error> {
     let mut body = String::new();
     for line in lines {
         let line = line?;
@@ -92,11 +91,21 @@ fn parse_body(lines: &mut FileLines) -> Result<String, Error> {
     Ok(body)
 }
 
-pub(crate) fn parse_file(file_path: &str) -> Result<PeatCode, Error> {
-    let reader = BufReader::new(File::open(file_path)?);
+pub(crate) fn parse_input(reader: BufReader<Box<dyn Read>>) -> Result<PeatCode, Error> {
     let mut lines = reader.lines();
     let version = parse_version_line(&read_next_line(&mut lines)?)?;
     let declarations = parse_declarations(&mut lines)?;
     let body = parse_body(&mut lines)?;
     Ok(PeatCode { version, declarations, body })
 }
+
+// fn print_lines(file_path_opt: Option<String>) -> Result<(), String> {
+//     let buf_reader = match file_path_opt {
+//         Some(file_path) => BufReader::new(File::open(file_path)?),
+//         None => BufReader::new(std::io::stdin())
+//     };
+//     for line in buf_reader.lines() {
+//         println!("{}", line?);
+//     }
+//     Ok(())
+// }
