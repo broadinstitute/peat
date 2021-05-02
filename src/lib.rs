@@ -4,6 +4,7 @@ mod expression;
 mod value;
 mod parse;
 mod version;
+mod types;
 
 use error::Error;
 use std::env;
