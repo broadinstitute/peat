@@ -25,3 +25,7 @@ impl From<io::Error> for Error {
 impl From<&str> for Error {
     fn from(st: &str) -> Error { PeatError(String::from(st)) }
 }
+
+impl From<String> for Error {
+    fn from(string: String) -> Error { PeatError(string) }
+}

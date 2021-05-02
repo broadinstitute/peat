@@ -5,6 +5,8 @@ mod value;
 mod parse;
 mod version;
 mod types;
+mod tokenize;
+mod declaration;
 
 use error::Error;
 use std::env;
@@ -33,7 +35,7 @@ pub fn run() -> Result<(), Error> {
     println!("Parsed some PeatCode!");
     println!("Peat version is {}", peat_code.version);
     for declaration in peat_code.declarations {
-        println!("{}={}", declaration.name, declaration.expression);
+        println!("{}", declaration);
     }
     println!("Body:");
     println!("{}", peat_code.body);

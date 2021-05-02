@@ -41,8 +41,3 @@ impl Display for Expression {
         }
     }
 }
-
-pub(crate) struct Declaration {
-    pub(crate) name: String,
-    pub(crate) expression: Expression
-}

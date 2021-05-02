@@ -1,10 +1,14 @@
 use crate::{
-    expression::{Expression, Declaration},
+    expression::{
+        Expression,
+        Expression::{BoolLiteral, UIntLiteral, Variable},
+    },
+    declaration::{Declaration, Assignment},
     error::Error::PeatError,
     error::Error,
-    expression::Expression::{BoolLiteral, UIntLiteral, Variable},
     peatcode::PeatCode,
     version::Version,
+    tokenize::{Token, Tokenizer},
 };
 use std::io::{BufReader, BufRead, Lines, Read};
 
@@ -34,27 +38,34 @@ fn is_valid_id(st: &str) -> bool {
     }
 }
 
-fn parse_expression(expr_str: &str) -> Result<Expression, Error> {
-    let expr_str_trim = expr_str.trim();
-    if let Ok(parsed_bool) = expr_str_trim.parse::<bool>() {
-        return Ok(BoolLiteral(parsed_bool));
+fn parse_expression(mut tokenizer: Tokenizer) -> Result<Expression, Error> {
+    let token =
+        tokenizer.strip_token()?.ok_or(Error::from("Missing expression."))?;
+    match token {
+        Token::Assign => { Err(Error::from(format!("Expected expression, but got '='.", )))}
+        Token::Id(id) => { Ok(Expression::Variable(id))}
+        Token::UInt(ui) => { Ok(Expression::UIntLiteral(ui))}
     }
-    if let Ok(parsed_uint) = expr_str_trim.parse::<u64>() {
-        return Ok(UIntLiteral(parsed_uint));
-    }
-    if is_valid_id(expr_str_trim) {
-        return Ok(Variable(String::from(expr_str_trim)));
-    }
-    Err(PeatError(format!("Could not parse {} as an expression.", expr_str_trim)))
 }
 
 fn parse_declaration(decl_str: &str) -> Result<Declaration, Error> {
-    let decl_str_trim = decl_str.trim();
-    let eq_pos = decl_str_trim.find('=').ok_or(PeatError(format!("Missing '='")))?;
-    let (name_str_raw, post_id_str) = decl_str_trim.split_at(eq_pos);
-    let name = String::from(name_str_raw.trim());
-    let expression = parse_expression(&post_id_str[1..])?;
-    Ok(Declaration { name, expression })
+    let mut tokenizer = Tokenizer::new(String::from(decl_str));
+    let token1 =
+        tokenizer.strip_token()?.ok_or(Error::from("Empty declaration"))?;
+    let id =
+        if let Token::Id(id) = token1 {
+            id
+        } else   {
+            return Err(Error::from("Declaration needs to start with an identifier"));
+        };
+    let token2 = tokenizer.strip_token()?.ok_or(Error::from("Missing '='"))?;
+    if let Token::Assign = token2 {
+        ()
+    } else {
+        return Err(PeatError(format!("Expected '=', but got {}.", token2)))
+    }
+    let expression = parse_expression(tokenizer)?;
+    Ok(Declaration::Assign(Assignment::new(id, expression)))
 }
 
 const HEADER_END_LINE: &str = "===";

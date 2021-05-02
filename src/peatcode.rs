@@ -1,4 +1,4 @@
-use crate::expression::Declaration;
+use crate::declaration::Declaration;
 use crate::version::Version;
 
 pub struct PeatCode {
