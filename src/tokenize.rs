@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::error::Error::PeatError;
-use std::fmt::{Display, Formatter, Debug};
+use std::fmt::{Display, Formatter};
 use std::fmt;
 
 mod strings {

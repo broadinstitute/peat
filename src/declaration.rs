@@ -3,8 +3,8 @@ use std::fmt::{Display, Formatter};
 use std::fmt;
 
 pub(crate) struct Assignment {
-    id: String,
-    expression: Box<Expression>
+    pub(crate) id: String,
+    pub(crate) expression: Box<Expression>
 }
 
 impl Assignment {

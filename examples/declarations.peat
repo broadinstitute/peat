@@ -1,6 +1,6 @@
 Peat 1.0
 X=1
-Y=true
+Y=2
 Z=X
 ===
 echo "Hello!"

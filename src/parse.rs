@@ -1,8 +1,5 @@
 use crate::{
-    expression::{
-        Expression,
-        Expression::{BoolLiteral, UIntLiteral, Variable},
-    },
+    expression::Expression,
     declaration::{Declaration, Assignment},
     error::Error::PeatError,
     error::Error,
@@ -21,30 +18,13 @@ fn parse_version_line(line: &str) -> Result<Version, Error> {
     }
 }
 
-fn is_valid_id_start(ch: char) -> bool {
-    ch.is_alphabetic() || ch == '_'
-}
-
-fn is_valid_id_part(ch: char) -> bool {
-    ch.is_alphanumeric() || ch == '_'
-}
-
-fn is_valid_id(st: &str) -> bool {
-    let mut chars = st.chars();
-    match chars.next() {
-        None => return false,
-        Some(char1) =>
-            is_valid_id_start(char1) && chars.all(|ch| { is_valid_id_part(ch) })
-    }
-}
-
 fn parse_expression(mut tokenizer: Tokenizer) -> Result<Expression, Error> {
     let token =
         tokenizer.strip_token()?.ok_or(Error::from("Missing expression."))?;
     match token {
-        Token::Assign => { Err(Error::from(format!("Expected expression, but got '='.", )))}
-        Token::Id(id) => { Ok(Expression::Variable(id))}
-        Token::UInt(ui) => { Ok(Expression::UIntLiteral(ui))}
+        Token::Assign => { Err(Error::from(format!("Expected expression, but got '='.", ))) }
+        Token::Id(id) => { Ok(Expression::Variable(id)) }
+        Token::UInt(ui) => { Ok(Expression::UIntLiteral(ui)) }
     }
 }
 
@@ -55,14 +35,14 @@ fn parse_declaration(decl_str: &str) -> Result<Declaration, Error> {
     let id =
         if let Token::Id(id) = token1 {
             id
-        } else   {
+        } else {
             return Err(Error::from("Declaration needs to start with an identifier"));
         };
     let token2 = tokenizer.strip_token()?.ok_or(Error::from("Missing '='"))?;
     if let Token::Assign = token2 {
         ()
     } else {
-        return Err(PeatError(format!("Expected '=', but got {}.", token2)))
+        return Err(PeatError(format!("Expected '=', but got {}.", token2)));
     }
     let expression = parse_expression(tokenizer)?;
     Ok(Declaration::Assign(Assignment::new(id, expression)))
