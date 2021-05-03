@@ -50,7 +50,10 @@ pub fn run() -> Result<(), Error> {
     for (id, value)  in bindings.iter() {
         println!("{}={}", id, value);
     }
-    println!("Body:");
+    println!("Body original:");
     println!("{}", peat_code.body);
+    let body_resolved = substitute::substitute(&peat_code.body, &bindings);
+    println!("Body resolved:");
+    println!("{}", body_resolved?);
     Ok(())
 }
