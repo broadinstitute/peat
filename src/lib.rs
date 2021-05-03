@@ -9,6 +9,7 @@ mod tokenize;
 mod declaration;
 mod evaluate;
 mod substitute;
+mod matryoshka;
 
 use error::Error;
 use std::env;
@@ -47,7 +48,7 @@ pub fn run() -> Result<(), Error> {
         println!("{}", declaration);
     }
     println!("After evaluation:");
-    for (id, value)  in bindings.iter() {
+    for (id, value)  in bindings.to_vec().iter() {
         println!("{}={}", id, value);
     }
     println!("Body original:");

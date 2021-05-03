@@ -8,7 +8,7 @@ mod delims {
 
 pub(crate) fn substitute(body: &String, bindings: &Bindings) -> Result<String, Error> {
     let mut body_new = body.clone();
-    for (id, value) in bindings {
+    for (id, value) in bindings.to_vec() {
         let pattern = format!("{}{}{}", delims::PRE, id, delims::POST);
         let substitute = format!("{}", value);
         body_new = body_new.replace(pattern.as_str(), substitute.as_str());

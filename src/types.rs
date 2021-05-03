@@ -1,8 +1,8 @@
-use std::collections::BTreeMap;
 use crate::value::Value;
+use crate::matryoshka;
 
-pub(crate) type Bindings = BTreeMap<String, Value>;
+pub(crate) type Bindings = matryoshka::MatryoshkaMap<String, Value>;
 
 pub(crate) fn get_empty_bindings() -> Bindings {
-    BTreeMap::new()
+    matryoshka::MatryoshkaMap::new()
 }

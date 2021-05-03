@@ -16,7 +16,7 @@ impl Expression {
             Expression::UIntLiteral(ui) => Ok(UIntValue(*ui)),
             Expression::Variable(id) => {
                 match bindings.get(id) {
-                    Some(value) => Ok(*value),
+                    Some(value) => Ok(value),
                     None => Err(Error::from(format!("Unknown identifier {}.", id)))
                 }
             }
