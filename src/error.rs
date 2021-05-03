@@ -2,6 +2,7 @@ use std::fmt::{Display, Formatter};
 use std::{fmt, result, io};
 use crate::error::Error::{IoError, PeatError};
 
+#[derive(Debug)]
 pub enum Error {
     PeatError(String),
     IoError(io::Error),

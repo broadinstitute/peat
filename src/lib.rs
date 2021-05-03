@@ -41,20 +41,22 @@ fn get_peat_code() -> Result<PeatCode, Error> {
 
 pub fn run() -> Result<(), Error> {
     let peat_code = get_peat_code()?;
-    let bindings = evaluate_declarations(&peat_code)?;
     println!("Parsed some PeatCode!");
     println!("Peat version is {}", peat_code.version);
     for declaration in &peat_code.declarations {
         println!("{}", declaration);
     }
+    let bindings_iter = evaluate_declarations(&peat_code)?;
     println!("After evaluation:");
-    for (id, value)  in bindings.to_vec().iter() {
-        println!("{}={}", id, value);
+    for bindings in bindings_iter {
+        for (id, value) in bindings.to_vec().iter() {
+            println!("{}={}", id, value);
+        }
+        println!("Body original:");
+        println!("{}", peat_code.body);
+        let body_resolved = substitute::substitute(&peat_code.body, &bindings);
+        println!("Body resolved:");
+        println!("{}", body_resolved?);
     }
-    println!("Body original:");
-    println!("{}", peat_code.body);
-    let body_resolved = substitute::substitute(&peat_code.body, &bindings);
-    println!("Body resolved:");
-    println!("{}", body_resolved?);
     Ok(())
 }
