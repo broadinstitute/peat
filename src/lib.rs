@@ -8,6 +8,7 @@ mod types;
 mod tokenize;
 mod declaration;
 mod evaluate;
+mod substitute;
 
 use error::Error;
 use std::env;
