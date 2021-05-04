@@ -4,14 +4,14 @@ use std::fmt;
 
 pub(crate) struct Assignment {
     pub(crate) id: String,
-    pub(crate) expression: Box<Expression>
+    pub(crate) expression: Box<dyn Expression>
 }
 
 impl Assignment {
-    pub(crate) fn new(id: String, expression: Expression) -> Assignment {
+    pub(crate) fn new(id: String, expression: Box<dyn Expression>) -> Assignment {
         Assignment {
             id,
-            expression: Box::new(expression)
+            expression
         }
     }
 }
