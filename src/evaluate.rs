@@ -1,39 +1,31 @@
 use crate::peatcode::PeatCode;
-use crate::types::{Bindings, get_empty_bindings};
+use crate::types::{Bindings, BindingsIterator};
 use crate::error::Error;
-use crate::declaration::Declaration;
-use std::iter;
-use std::iter::Once;
+use crate::declaration::{Declaration, Assignment};
+use crate::types;
 
-pub(crate) fn evaluate_declarations(peat_code: &PeatCode) -> Result<Once<Bindings>, Error> {
-    let mut bindings = get_empty_bindings();
+pub(crate) fn evaluate_declarations(peat_code: &PeatCode) -> BindingsIterator {
+    let mut bindings_iter = types::new_bindings_iter();
     for declaration in &peat_code.declarations {
-        bindings = evaluate_old(declaration, bindings)?;
+        bindings_iter = evaluate(declaration, bindings_iter);
     }
-    Ok(iter::once(bindings))
+    bindings_iter
 }
 
-fn evaluate_old(declaration: &Declaration, bindings: Bindings)
-                -> Result<Bindings, Error> {
-    match declaration {
-        Declaration::Assign(assignment) => {
-            let id = assignment.id.clone();
-            let value = assignment.expression.eval(&bindings)?;
-            Ok(bindings.with_value(id, value))
-        }
-    }
+fn bindings_for_assign(bindings_result: Result<Bindings, Error>,
+                       assignment: &Assignment) -> Result<Bindings, Error> {
+    let bindings = bindings_result?;
+    let id = assignment.id.clone();
+    let value = assignment.expression.eval(&bindings)?;
+    Ok(bindings.with_value(id.clone(), value))
 }
 
-fn evaluate(declaration: &'static Declaration, bindings_iter: Box<dyn Iterator<Item=Bindings>>)
-            -> Box<dyn Iterator<Item=Bindings>> {
+fn evaluate<'a>(declaration: &'a Declaration, bindings_iter: BindingsIterator<'a>)
+                -> BindingsIterator<'a> {
     let iter = match declaration {
         Declaration::Assign(assignment) => {
-            let id = assignment.id.clone();
-            bindings_iter.map(move |bindings|{
-                let value =
-                    assignment.expression.eval(&bindings)
-                        .expect(format!("Cannot evaluate {}", id).as_str());
-                bindings.with_value(id.clone(), value)
+            bindings_iter.map(move |bindings_result| {
+                bindings_for_assign(bindings_result, assignment)
             })
         }
     };

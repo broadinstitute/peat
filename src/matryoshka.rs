@@ -14,7 +14,7 @@ pub(crate) struct Layer<K: Eq + Clone, V: Clone> {
 struct WithValuesIterator<K: Eq + Clone, V: Clone> {
     inner: Rc<MatryoshkaMap<K, V>>,
     key: K,
-    value_iter: Box<dyn Iterator<Item=V>>
+    value_iter: Box<dyn Iterator<Item=V>>,
 }
 
 impl<K: Eq + Clone, V: Clone> MatryoshkaMap<K, V> {
@@ -47,26 +47,14 @@ impl<K: Eq + Clone, V: Clone> MatryoshkaMap<K, V> {
     pub(crate) fn with_value(self, key: K, value: V) -> MatryoshkaMap<K, V> {
         MatryoshkaMap::Wrap(Layer { inner: Rc::new(self), key, value })
     }
-
-    pub(crate) fn recursive_map<'a, T, F>(&self, zero: &'a T, f: &F) -> &'a T
-        where F: Fn(&'a T, &K, &V) -> &'a T
-    {
-        match self {
-            MatryoshkaMap::Empty => zero,
-            MatryoshkaMap::Wrap(layer) => {
-                let previous = layer.inner.recursive_map(zero, &f);
-                f(&previous, &layer.key, &layer.value)
-            }
-        }
-    }
 }
 
 impl<K: Eq + Clone, V: Clone> Iterator for WithValuesIterator<K, V> {
     type Item = MatryoshkaMap<K, V>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.value_iter.next().map(|value|{
-           MatryoshkaMap::Wrap(Layer { inner: self.inner.clone(), key: self.key.clone(), value })
+        self.value_iter.next().map(|value| {
+            MatryoshkaMap::Wrap(Layer { inner: self.inner.clone(), key: self.key.clone(), value })
         })
     }
 }

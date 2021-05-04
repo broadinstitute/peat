@@ -22,9 +22,9 @@ fn parse_expression(mut tokenizer: Tokenizer) -> Result<Expression, Error> {
     let token =
         tokenizer.strip_token()?.ok_or(Error::from("Missing expression."))?;
     match token {
-        Token::Assign => { Err(Error::from(format!("Expected expression, but got '='.", ))) }
         Token::Id(id) => { Ok(Expression::Variable(id)) }
         Token::UInt(ui) => { Ok(Expression::UIntLiteral(ui)) }
+        _ => {Err(Error::from(format!("Expected expression, but got {}.", token)))}
     }
 }
 

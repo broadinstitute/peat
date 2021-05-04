@@ -3,12 +3,20 @@ use crate::error::Error::PeatError;
 use std::fmt::{Display, Formatter};
 use std::fmt;
 
-mod strings {
+pub(crate) mod strings {
     pub(crate) const ASSIGN: &str = "=";
+    pub(crate) const ITERATE: &str = "<-";
+    pub(crate) const RANGE: &str = "..";
+    pub(crate) const DIVIDE: &str = "/";
+    pub(crate) const PICK: &str = "$";
 }
 
 pub(crate) enum Token {
     Assign,
+    Iterate,
+    Range,
+    Divide,
+    Pick,
     Id(String),
     UInt(u64),
 }
@@ -16,7 +24,11 @@ pub(crate) enum Token {
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Token::Assign => { f.write_str("=") }
+            Token::Assign => { f.write_str(strings::ASSIGN) }
+            Token::Iterate => { f.write_str(strings::ITERATE) }
+            Token::Range => { f.write_str(strings::RANGE) }
+            Token::Divide => { f.write_str(strings::DIVIDE) }
+            Token::Pick => { f.write_str(strings::PICK) }
             Token::Id(id) => { Display::fmt(id, f) }
             Token::UInt(ui) => { Display::fmt(ui, f) }
         }
@@ -46,6 +58,14 @@ impl Tokenizer {
             Ok(None)
         } else if let Some(stripped) = trimmed.strip_prefix(strings::ASSIGN) {
             Ok(Some((Token::Assign, String::from(stripped))))
+        } else if let Some(stripped) = trimmed.strip_prefix(strings::ITERATE) {
+            Ok(Some((Token::Iterate, String::from(stripped))))
+        } else if let Some(stripped) = trimmed.strip_prefix(strings::RANGE) {
+            Ok(Some((Token::Range, String::from(stripped))))
+        } else if let Some(stripped) = trimmed.strip_prefix(strings::DIVIDE) {
+            Ok(Some((Token::Divide, String::from(stripped))))
+        } else if let Some(stripped) = trimmed.strip_prefix(strings::PICK) {
+            Ok(Some((Token::Pick, String::from(stripped))))
         } else if trimmed.starts_with(is_valid_id_start) {
             let pos =
                 trimmed.find(|ch| { !is_valid_id_part(ch) }).unwrap_or(trimmed.len());

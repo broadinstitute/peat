@@ -46,17 +46,18 @@ pub fn run() -> Result<(), Error> {
     for declaration in &peat_code.declarations {
         println!("{}", declaration);
     }
-    let bindings_iter = evaluate_declarations(&peat_code)?;
+    let bindings_iter = evaluate_declarations(&peat_code);
     println!("After evaluation:");
-    for bindings in bindings_iter {
+    for bindings_result in bindings_iter {
+        let bindings = bindings_result?;
         for (id, value) in bindings.to_vec().iter() {
             println!("{}={}", id, value);
         }
         println!("Body original:");
         println!("{}", peat_code.body);
-        let body_resolved = substitute::substitute(&peat_code.body, &bindings);
+        let body_resolved = substitute::substitute(&peat_code.body, &bindings)?;
         println!("Body resolved:");
-        println!("{}", body_resolved?);
+        println!("{}", body_resolved);
     }
     Ok(())
 }
