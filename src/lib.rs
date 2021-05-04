@@ -43,18 +43,35 @@ pub fn run() -> Result<(), Error> {
     let peat_code = get_peat_code()?;
     println!("Parsed some PeatCode!");
     println!("Peat version is {}", peat_code.version);
-    for declaration in &peat_code.declarations {
-        println!("{}", declaration);
+    let mut declaration_iter = peat_code.declarations.iter();
+    print!("Declarations: ");
+    if let Some(declaration) = declaration_iter.next() {
+        print!("{}", declaration);
+        for declaration in declaration_iter {
+            print!(", {}", declaration);
+        }
+        println!();
+    } else {
+        println!("[none]");
     }
+    println!("Body original:");
+    println!("{}", peat_code.body);
     let bindings_iter = evaluate_declarations(&peat_code);
     println!("After evaluation:");
     for bindings_result in bindings_iter {
         let bindings = bindings_result?;
-        for (id, value) in bindings.to_vec().iter() {
-            println!("{}={}", id, value);
+        let bindings_vec = bindings.to_vec();
+        let mut entries_iter = bindings_vec.iter();
+        print!("Bindings: ");
+        if let Some((id, value)) = entries_iter.next() {
+            print!("{}={}", id, value);
+            for (id, value) in entries_iter {
+                print!(", {}={}", id, value);
+            }
+            println!()
+        } else {
+            println!("[empty]");
         }
-        println!("Body original:");
-        println!("{}", peat_code.body);
         let body_resolved = substitute::substitute(&peat_code.body, &bindings)?;
         println!("Body resolved:");
         println!("{}", body_resolved);

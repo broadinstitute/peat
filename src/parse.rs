@@ -24,7 +24,7 @@ fn parse_expression(mut tokenizer: Tokenizer) -> Result<Expression, Error> {
     match token {
         Token::Id(id) => { Ok(Expression::Variable(id)) }
         Token::UInt(ui) => { Ok(Expression::UIntLiteral(ui)) }
-        _ => {Err(Error::from(format!("Expected expression, but got {}.", token)))}
+        _ => { Err(Error::from(format!("Expected expression, but got {}.", token))) }
     }
 }
 
