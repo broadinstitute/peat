@@ -21,6 +21,20 @@ pub(crate) enum Token {
     UInt(u64),
 }
 
+impl Clone for Token {
+    fn clone(&self) -> Self {
+        match self {
+            Token::Assign => { Token::Assign }
+            Token::Iterate => { Token::Iterate }
+            Token::Range => { Token::Range }
+            Token::Divide => { Token::Divide }
+            Token::Pick => { Token::Pick }
+            Token::Id(id) => { Token::Id(id.clone()) }
+            Token::UInt(ui) => { Token::UInt(*ui) }
+        }
+    }
+}
+
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {

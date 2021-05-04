@@ -10,6 +10,7 @@ mod declaration;
 mod evaluate;
 mod substitute;
 mod matryoshka;
+mod tree;
 
 use error::Error;
 use std::env;
