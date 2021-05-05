@@ -11,6 +11,7 @@ pub(crate) mod strings {
     pub(crate) const PICK: &str = "$";
 }
 
+#[derive(PartialEq, Eq)]
 pub(crate) enum Token {
     Assign,
     Iterate,

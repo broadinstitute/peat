@@ -1,5 +1,5 @@
 use crate::{
-    expression::{Expression, UIntLiteral, Variable},
+    expression::{Expression, UIntLiteral, UIntVariable},
     declaration::{Declaration, Assignment},
     error::Error::PeatError,
     error::Error,
@@ -22,7 +22,7 @@ fn parse_expression(mut tokenizer: Tokenizer) -> Result<Box<dyn Expression>, Err
     let token =
         tokenizer.strip_token()?.ok_or(Error::from("Missing expression."))?;
     match token {
-        Token::Id(id) => { Ok(Box::new(Variable::new(id))) }
+        Token::Id(id) => { Ok(Box::new(UIntVariable::new(id))) }
         Token::UInt(ui) => { Ok(Box::new(UIntLiteral::new(ui))) }
         _ => { Err(Error::from(format!("Expected expression, but got {}.", token))) }
     }
