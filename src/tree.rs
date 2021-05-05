@@ -1,5 +1,5 @@
 use crate::tokenize::Token;
-use crate::expression::{Expression, Type};
+use crate::expression::{Expression, Type, UIntRangeExpression};
 use crate::error::Error;
 
 enum Tree {
@@ -79,4 +79,8 @@ fn get_bin_expr_parts(trees: &Vec<Tree>, op: Token) -> Result<Option<BinExprPart
     }
 }
 
-// fn build_range_expression() -> Result<Box<dyn >>
+fn build_range_expression(bin_expr_parts: &BinExprParts) -> Result<UIntRangeExpression, Error> {
+    let from = bin_expr_parts.lhs.as_typed().as_int_expr()?.clone_int_expr();
+    let until = bin_expr_parts.rhs.as_typed().as_int_expr()?.clone_int_expr();
+    Ok(UIntRangeExpression::new(from, until))
+}
