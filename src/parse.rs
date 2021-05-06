@@ -8,8 +8,9 @@ use crate::{
     peatcode::PeatCode,
     tokenize::{Token, Tokenizer},
     tree,
-    version::Version
+    version::Version,
 };
+use crate::declaration::Iteration;
 
 fn parse_version_line(line: &str) -> Result<Version, Error> {
     if line.starts_with("Peat") {
@@ -35,13 +36,22 @@ fn parse_declaration(decl_str: &str) -> Result<Declaration, Error> {
             return Err(Error::from("Declaration needs to start with an identifier"));
         };
     let token2 = tokenizer.strip_token()?.ok_or(Error::from("Missing '='"))?;
-    if let Token::Assign = token2 {
-        ()
-    } else {
-        return Err(PeatError(format!("Expected '=', but got {}.", token2)));
+    match token2 {
+        Token::Assign => {
+            let expression = parse_expression(tokenizer)?;
+            Ok(Declaration::Assign(Assignment::new(id, expression)))
+        }
+        Token::Iterate => {
+            let expression =
+                parse_expression(tokenizer)?.as_typed().as_range_expr()?.clone_range_expr();
+            Ok(Declaration::Iterate(Iteration::new(id, expression)))
+        }
+        _ => {
+            return Err(PeatError(
+                format!("Expected {} or {}, but got {}.", Token::Assign, Token::Iterate, token2)
+            ));
+        }
     }
-    let expression = parse_expression(tokenizer)?;
-    Ok(Declaration::Assign(Assignment::new(id, expression)))
 }
 
 const HEADER_END_LINE: &str = "===";

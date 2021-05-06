@@ -17,6 +17,18 @@ struct WithValuesIterator<K: Eq + Clone, V: Clone> {
     value_iter: Box<dyn Iterator<Item=V>>,
 }
 
+impl<K: Eq + Clone, V: Clone> Layer<K, V> {
+    pub fn new(inner: Rc<MatryoshkaMap<K, V>>, key: K, value: V) -> Layer<K, V> {
+        Layer { inner, key, value}
+    }
+}
+
+impl<K: Eq + Clone, V: Clone> Clone for Layer<K, V> {
+    fn clone(&self) -> Self {
+        Layer::new(self.inner.clone(), self.key.clone(), self.value.clone())
+    }
+}
+
 impl<K: Eq + Clone, V: Clone> MatryoshkaMap<K, V> {
     pub(crate) fn new() -> MatryoshkaMap<K, V> { MatryoshkaMap::Empty }
 
@@ -46,6 +58,15 @@ impl<K: Eq + Clone, V: Clone> MatryoshkaMap<K, V> {
 
     pub(crate) fn with_value(self, key: K, value: V) -> MatryoshkaMap<K, V> {
         MatryoshkaMap::Wrap(Layer { inner: Rc::new(self), key, value })
+    }
+
+    pub(crate) fn clone(&self) -> MatryoshkaMap<K, V> {
+        match self {
+            MatryoshkaMap::Empty => { MatryoshkaMap::Empty }
+            MatryoshkaMap::Wrap(layer) => {
+                MatryoshkaMap::Wrap(layer.clone())
+            }
+        }
     }
 }
 

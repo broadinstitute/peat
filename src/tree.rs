@@ -1,6 +1,6 @@
 use crate::tokenize::Token;
-use crate::expression::{Expression, Type, UIntRangeRangeExpression, UIntRangeExpression,
-                        UIntVariable, UIntLiteral};
+use crate::expression::{Expression, UIntRangeRangeExpression, UIntSimpleRangeExpression,
+                        UIntPickRangeExpression, UIntVariable, UIntLiteral};
 use crate::error::Error;
 use std::iter;
 
@@ -29,23 +29,24 @@ pub(crate) fn reduce(tokens: Vec<Token>) -> Result<Box<dyn Expression>, Error> {
         tokens.iter().map(|token| { Tree::from_token(token.clone()) }).collect();
     loop {
         if let Some(bin_expr_parts) = get_bin_expr_parts(&trees, Token::Range)? {
-            println!("Range");
             let range_expr = build_range_expression(&bin_expr_parts)?;
             let op_pos = bin_expr_parts.op_pos;
             replace_with_bin_expr(&mut trees, range_expr, op_pos);
             continue;
         } else if let Some(bin_expr_parts) = get_bin_expr_parts(&trees, Token::Divide)? {
-            println!("Divide");
-            let range_expr = build_range_expression(&bin_expr_parts)?;
+            let divide_expr = build_divide_expression(&bin_expr_parts)?;
             let op_pos = bin_expr_parts.op_pos;
-            replace_with_bin_expr(&mut trees, range_expr, op_pos);
+            replace_with_bin_expr(&mut trees, divide_expr, op_pos);
+            continue;
+        } else if let Some(bin_expr_parts) = get_bin_expr_parts(&trees, Token::Pick)? {
+            let pick_expr = build_pick_expression(&bin_expr_parts)?;
+            let op_pos = bin_expr_parts.op_pos;
+            replace_with_bin_expr(&mut trees, pick_expr, op_pos);
             continue;
         }
         if let [Tree::ExpressionNode(expression)] = &trees[..] {
-            println!("Got a single expression!");
             break Ok(expression.clone_expr());
         } else {
-            println!("Reduction failed!");
             break Err(Error::from("Cannot parse expression."));
         }
     }
@@ -54,7 +55,6 @@ pub(crate) fn reduce(tokens: Vec<Token>) -> Result<Box<dyn Expression>, Error> {
 struct BinExprParts<'a> {
     op_pos: usize,
     lhs: &'a Box<dyn Expression>,
-    op: Token,
     rhs: &'a Box<dyn Expression>,
 }
 
@@ -67,8 +67,6 @@ fn get_bin_expr_parts(trees: &Vec<Tree>, op: Token) -> Result<Option<BinExprPart
     });
     match pos_opt {
         Some(op_pos) => {
-            println!("op_pos == {}", op_pos);
-            println!("trees.len() == {}", trees.len());
             if op_pos == 0 {
                 Err(Error::from(format!("An expression cannot start with {}.", op)))
             } else if op_pos == trees.len() - 1 {
@@ -100,7 +98,7 @@ fn get_bin_expr_parts(trees: &Vec<Tree>, op: Token) -> Result<Option<BinExprPart
                     }
                     Tree::ExpressionNode(expression) => { expression }
                 };
-                Ok(Some(BinExprParts { op_pos, lhs, op, rhs }))
+                Ok(Some(BinExprParts { op_pos, lhs, rhs }))
             }
         }
         None => Ok(None)
@@ -108,17 +106,28 @@ fn get_bin_expr_parts(trees: &Vec<Tree>, op: Token) -> Result<Option<BinExprPart
 }
 
 fn build_range_expression(bin_expr_parts: &BinExprParts)
-                          -> Result<UIntRangeExpression, Error> {
+                          -> Result<UIntSimpleRangeExpression, Error> {
     let from = bin_expr_parts.lhs.as_typed().as_int_expr()?.clone_int_expr();
     let until = bin_expr_parts.rhs.as_typed().as_int_expr()?.clone_int_expr();
-    Ok(UIntRangeExpression::new(from, until))
+    Ok(UIntSimpleRangeExpression::new(from, until))
 }
 
 fn build_divide_expression(bin_expr_parts: &BinExprParts)
-                          -> Result<UIntRangeRangeExpression, Error> {
-    let dividend = bin_expr_parts.lhs.as_typed().as_range_expr()?.clone_range_expr();
-    let divisor = bin_expr_parts.rhs.as_typed().as_range_expr()?.clone_range_expr();
+                           -> Result<UIntRangeRangeExpression, Error> {
+    let dividend =
+        bin_expr_parts.lhs.as_typed().as_range_expr()?.clone_range_expr();
+    let divisor =
+        bin_expr_parts.rhs.as_typed().as_range_expr()?.clone_range_expr();
     Ok(UIntRangeRangeExpression::new(dividend, divisor))
+}
+
+fn build_pick_expression(bin_expr_parts: &BinExprParts)
+                         -> Result<UIntPickRangeExpression, Error> {
+    let groups =
+        bin_expr_parts.lhs.as_typed().as_range_range_expr()?.clone_range_range_expr();
+    let pick =
+        bin_expr_parts.rhs.as_typed().as_int_expr()?.clone_int_expr();
+    Ok(UIntPickRangeExpression::new(groups, pick))
 }
 
 fn replace_with_bin_expr<E: Expression + 'static>(trees: &mut Vec<Tree>,

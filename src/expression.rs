@@ -1,10 +1,9 @@
 use std::fmt::{Display, Formatter};
 use std::fmt;
-use crate::value::Value;
+use crate::value::{Value, UIntRange, UIntRangeRange};
 use crate::value::Value::UIntValue;
 use crate::types::Bindings;
 use crate::error::Error;
-use crate::expression::Type::UIntRangeRange;
 
 pub(crate) enum Type {
     UInt,
@@ -21,8 +20,8 @@ pub(crate) trait Expression: Display {
 
 pub(crate) enum AsTyped<'a> {
     AsUInt(&'a dyn UIntExpression),
-    AsUIntRange(&'a UIntRangeExpression),
-    AsUIntRangeRange(&'a UIntRangeExpression),
+    AsUIntRange(&'a dyn UIntRangeExpression),
+    AsUIntRangeRange(&'a UIntRangeRangeExpression),
 }
 
 impl AsTyped<'_> {
@@ -44,8 +43,7 @@ impl AsTyped<'_> {
                 )),
         }
     }
-
-    pub(crate) fn as_range_expr(&self) -> Result<&UIntRangeExpression, Error> {
+    pub(crate) fn as_range_expr(&self) -> Result<&dyn UIntRangeExpression, Error> {
         match self {
             AsTyped::AsUInt(_) =>
                 Err(Error::from("Expected range expression, but got integer expression.")),
@@ -57,11 +55,26 @@ impl AsTyped<'_> {
                 )),
         }
     }
+    pub(crate) fn as_range_range_expr(&self) -> Result<&UIntRangeRangeExpression, Error> {
+        match self {
+            AsTyped::AsUInt(_) =>
+                Err(Error::from("Expected range range expression, but got integer expression.")),
+            AsTyped::AsUIntRange(_) =>
+                Err(Error::from("Expected range range expression, but got range expression.")),
+            AsTyped::AsUIntRangeRange(range_range_expr) =>
+                Ok(*range_range_expr)
+        }
+    }
 }
 
 pub(crate) trait UIntExpression: Expression {
     fn eval_int(&self, bindings: &Bindings) -> Result<u64, Error>;
     fn clone_int_expr(&self) -> Box<dyn UIntExpression>;
+}
+
+pub(crate) trait UIntRangeExpression: Expression {
+    fn eval_range(&self, bindings: &Bindings) -> Result<UIntRange, Error>;
+    fn clone_range_expr(&self) -> Box<dyn UIntRangeExpression>;
 }
 
 pub(crate) struct UIntLiteral {
@@ -72,14 +85,19 @@ pub(crate) struct UIntVariable {
     id: String,
 }
 
-pub(crate) struct UIntRangeExpression {
+pub(crate) struct UIntSimpleRangeExpression {
     from: Box<dyn UIntExpression>,
     until: Box<dyn UIntExpression>,
 }
 
 pub(crate) struct UIntRangeRangeExpression {
-    dividend: Box<UIntRangeExpression>,
-    divisor: Box<UIntRangeExpression>,
+    dividend: Box<dyn UIntRangeExpression>,
+    divisor: Box<dyn UIntRangeExpression>,
+}
+
+pub(crate) struct UIntPickRangeExpression {
+    groups: Box<UIntRangeRangeExpression>,
+    pick: Box<dyn UIntExpression>,
 }
 
 impl UIntLiteral {
@@ -90,23 +108,32 @@ impl UIntVariable {
     pub(crate) fn new(id: String) -> UIntVariable { UIntVariable { id } }
 }
 
-impl UIntRangeExpression {
+impl UIntSimpleRangeExpression {
     pub(crate) fn new(from: Box<dyn UIntExpression>, until: Box<dyn UIntExpression>)
-                      -> UIntRangeExpression {
-        UIntRangeExpression { from, until }
-    }
-    pub(crate) fn clone_range_expr(&self) -> Box<UIntRangeExpression> {
-        Box::new(
-            UIntRangeExpression::new(self.from.clone_int_expr(),
-                                     self.until.clone_int_expr())
-        )
+                      -> UIntSimpleRangeExpression {
+        UIntSimpleRangeExpression { from, until }
     }
 }
 
 impl UIntRangeRangeExpression {
-    pub(crate) fn new(dividend: Box<UIntRangeExpression>, divisor: Box<UIntRangeExpression>)
+    pub(crate) fn new(dividend: Box<dyn UIntRangeExpression>,
+                      divisor: Box<dyn UIntRangeExpression>)
                       -> UIntRangeRangeExpression {
         UIntRangeRangeExpression { dividend, divisor }
+    }
+    pub(crate) fn clone_range_range_expr(&self) -> Box<UIntRangeRangeExpression> {
+        Box::new(
+            UIntRangeRangeExpression::new(self.dividend.clone_range_expr(),
+                                          self.divisor.clone_range_expr())
+        )
+    }
+}
+
+impl UIntPickRangeExpression {
+    pub(crate) fn new(groups: Box<UIntRangeRangeExpression>,
+                      pick: Box<dyn UIntExpression>)
+                      -> UIntPickRangeExpression {
+        UIntPickRangeExpression { groups, pick }
     }
 }
 
@@ -153,7 +180,7 @@ impl UIntExpression for UIntVariable {
     }
 }
 
-impl Expression for UIntRangeExpression {
+impl Expression for UIntSimpleRangeExpression {
     fn eval(&self, bindings: &Bindings) -> Result<Value, Error> {
         let from = self.from.eval(bindings)?.as_int()?;
         let until = self.until.eval(bindings)?.as_int()?;
@@ -163,7 +190,71 @@ impl Expression for UIntRangeExpression {
     fn get_type(&self) -> Type { Type::UIntRange }
     fn as_typed(&self) -> AsTyped { AsTyped::AsUIntRange(self) }
 
-    fn clone_expr(&self) -> Box<dyn Expression> { self.clone_range_expr() }
+    fn clone_expr(&self) -> Box<dyn Expression> {
+        Box::new(
+            UIntSimpleRangeExpression::new(self.from.clone_int_expr(),
+                                           self.until.clone_int_expr())
+        )
+    }
+}
+
+impl UIntRangeExpression for UIntSimpleRangeExpression {
+    fn eval_range(&self, bindings: &Bindings) -> Result<UIntRange, Error> {
+        let from = self.from.eval(bindings)?.as_int()?;
+        let until = self.until.eval(bindings)?.as_int()?;
+        Ok(UIntRange::new(from, until))
+    }
+    fn clone_range_expr(&self) -> Box<dyn UIntRangeExpression> {
+        Box::new(
+            UIntSimpleRangeExpression::new(self.from.clone_int_expr(),
+                                           self.until.clone_int_expr())
+        )
+    }
+}
+
+impl Expression for UIntRangeRangeExpression {
+    fn eval(&self, bindings: &Bindings) -> Result<Value, Error> {
+        let dividend = self.dividend.eval(bindings)?.as_range()?;
+        let divisor = self.divisor.eval(bindings)?.as_range()?;
+        Ok(Value::UIntRangeRangeValue(UIntRangeRange::new(dividend, divisor)))
+    }
+
+    fn get_type(&self) -> Type { Type::UIntRangeRange }
+    fn as_typed(&self) -> AsTyped { AsTyped::AsUIntRangeRange(self) }
+
+    fn clone_expr(&self) -> Box<dyn Expression> {
+        Box::new(UIntRangeRangeExpression::new(self.dividend.clone_range_expr(),
+                                               self.divisor.clone_range_expr()))
+    }
+}
+
+impl Expression for UIntPickRangeExpression {
+    fn eval(&self, bindings: &Bindings) -> Result<Value, Error> {
+        let groups = self.groups.eval(bindings)?.as_range_range()?;
+        let pick = self.pick.eval(bindings)?.as_int()?;
+        Ok(Value::UIntRangeValue(groups.pick(pick)?))
+    }
+
+    fn get_type(&self) -> Type { Type::UIntRange }
+    fn as_typed(&self) -> AsTyped { AsTyped::AsUIntRange(self) }
+
+    fn clone_expr(&self) -> Box<dyn Expression> {
+        Box::new(UIntPickRangeExpression::new(self.groups.clone_range_range_expr(),
+                                              self.pick.clone_int_expr()))
+    }
+}
+
+impl UIntRangeExpression for UIntPickRangeExpression {
+    fn eval_range(&self, bindings: &Bindings) -> Result<UIntRange, Error> {
+        let groups = self.groups.eval(bindings)?.as_range_range()?;
+        let pick = self.pick.eval(bindings)?.as_int()?;
+        Ok(groups.pick(pick)?)
+    }
+
+    fn clone_range_expr(&self) -> Box<dyn UIntRangeExpression> {
+        Box::new(UIntPickRangeExpression::new(self.groups.clone_range_range_expr(),
+                                              self.pick.clone_int_expr()))
+    }
 }
 
 impl Display for UIntLiteral {
@@ -178,8 +269,20 @@ impl Display for UIntVariable {
     }
 }
 
-impl Display for UIntRangeExpression {
+impl Display for UIntSimpleRangeExpression {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Display::fmt(format!("{} .. {}", self.from, self.until).as_str(), f)
+    }
+}
+
+impl Display for UIntRangeRangeExpression {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        Display::fmt(format!("{} / {}", self.dividend, self.divisor).as_str(), f)
+    }
+}
+
+impl Display for UIntPickRangeExpression {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        Display::fmt(format!("{} $ {}", self.groups, self.pick).as_str(), f)
     }
 }

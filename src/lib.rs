@@ -11,6 +11,7 @@ mod evaluate;
 mod substitute;
 mod matryoshka;
 mod tree;
+mod bash;
 
 use error::Error;
 use std::env;
@@ -43,20 +44,22 @@ fn get_peat_code() -> Result<PeatCode, Error> {
 
 pub fn run() -> Result<(), Error> {
     let peat_code = get_peat_code()?;
-    println!("Parsed some PeatCode!");
-    println!("Peat version is {}", peat_code.version);
+    println!("Peat file uses version {}", peat_code.version);
     print_declarations(&peat_code);
-    println!("Body original:");
+    println!("Template:");
     println!("{}", peat_code.body);
     let bindings_iter = evaluate_declarations(&peat_code);
-    println!("After evaluation:");
+    println!("Now evaluating");
     for bindings_result in bindings_iter {
         let bindings = bindings_result?;
         print_bindings(&bindings);
         let body_resolved = substitute::substitute(&peat_code.body, &bindings)?;
-        println!("Body resolved:");
-        println!("{}", body_resolved);
+        match bash::run_bash_script(body_resolved) {
+            Ok(_) => { println!("Process completed successfully.")}
+            Err(error) => { println!("Process failed: {}", error)}
+        }
     }
+    println!("Done!");
     Ok(())
 }
 
