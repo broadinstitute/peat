@@ -1,0 +1,6 @@
+Peat 1.0
+X = 1
+Y = 2
+Z = 0 .. 4
+===
+echo "Hello!"

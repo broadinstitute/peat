@@ -65,9 +65,9 @@ fn print_bindings(bindings: &Bindings) {
     let mut entries_iter = bindings_vec.iter();
     print!("Bindings: ");
     if let Some((id, value)) = entries_iter.next() {
-        print!("{}={}", id, value);
+        print!("{} = {}", id, value);
         for (id, value) in entries_iter {
-            print!(", {}={}", id, value);
+            print!(", {} = {}", id, value);
         }
         println!()
     } else {

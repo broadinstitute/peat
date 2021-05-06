@@ -109,6 +109,16 @@ impl Tokenizer {
             }
         }
     }
+
+    pub(crate) fn write_to_vec(mut self) -> Result<Vec<Token>, Error> {
+        let mut tokens = Vec::new();
+        loop {
+            match self.strip_token()? {
+                None => { break Ok(tokens) }
+                Some(token) => { tokens.push(token) }
+            }
+        }
+    }
 }
 
 

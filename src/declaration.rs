@@ -24,7 +24,7 @@ impl Display for Declaration {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Declaration::Assign(assignment) => {
-                format!("{}={}", assignment.id, assignment.expression).fmt(f)
+                format!("{} = {}", assignment.id, assignment.expression).fmt(f)
             }
         }
     }

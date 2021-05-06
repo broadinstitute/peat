@@ -1,13 +1,15 @@
+use std::io::{BufRead, BufReader, Lines, Read};
+
 use crate::{
-    expression::{Expression, UIntLiteral, UIntVariable},
-    declaration::{Declaration, Assignment},
-    error::Error::PeatError,
+    declaration::{Assignment, Declaration},
     error::Error,
+    error::Error::PeatError,
+    expression::Expression,
     peatcode::PeatCode,
-    version::Version,
     tokenize::{Token, Tokenizer},
+    tree,
+    version::Version
 };
-use std::io::{BufReader, BufRead, Lines, Read};
 
 fn parse_version_line(line: &str) -> Result<Version, Error> {
     if line.starts_with("Peat") {
@@ -18,14 +20,8 @@ fn parse_version_line(line: &str) -> Result<Version, Error> {
     }
 }
 
-fn parse_expression(mut tokenizer: Tokenizer) -> Result<Box<dyn Expression>, Error> {
-    let token =
-        tokenizer.strip_token()?.ok_or(Error::from("Missing expression."))?;
-    match token {
-        Token::Id(id) => { Ok(Box::new(UIntVariable::new(id))) }
-        Token::UInt(ui) => { Ok(Box::new(UIntLiteral::new(ui))) }
-        _ => { Err(Error::from(format!("Expected expression, but got {}.", token))) }
-    }
+fn parse_expression(tokenizer: Tokenizer) -> Result<Box<dyn Expression>, Error> {
+    Ok(tree::reduce(tokenizer.write_to_vec()?)?)
 }
 
 fn parse_declaration(decl_str: &str) -> Result<Declaration, Error> {
