@@ -1,5 +1,6 @@
 use crate::tokenize::Token;
-use crate::expression::{Expression, Type, UIntRangeExpression, UIntVariable, UIntLiteral};
+use crate::expression::{Expression, Type, UIntRangeRangeExpression, UIntRangeExpression,
+                        UIntVariable, UIntLiteral};
 use crate::error::Error;
 use std::iter;
 
@@ -29,6 +30,12 @@ pub(crate) fn reduce(tokens: Vec<Token>) -> Result<Box<dyn Expression>, Error> {
     loop {
         if let Some(bin_expr_parts) = get_bin_expr_parts(&trees, Token::Range)? {
             println!("Range");
+            let range_expr = build_range_expression(&bin_expr_parts)?;
+            let op_pos = bin_expr_parts.op_pos;
+            replace_with_bin_expr(&mut trees, range_expr, op_pos);
+            continue;
+        } else if let Some(bin_expr_parts) = get_bin_expr_parts(&trees, Token::Divide)? {
+            println!("Divide");
             let range_expr = build_range_expression(&bin_expr_parts)?;
             let op_pos = bin_expr_parts.op_pos;
             replace_with_bin_expr(&mut trees, range_expr, op_pos);
@@ -105,6 +112,13 @@ fn build_range_expression(bin_expr_parts: &BinExprParts)
     let from = bin_expr_parts.lhs.as_typed().as_int_expr()?.clone_int_expr();
     let until = bin_expr_parts.rhs.as_typed().as_int_expr()?.clone_int_expr();
     Ok(UIntRangeExpression::new(from, until))
+}
+
+fn build_divide_expression(bin_expr_parts: &BinExprParts)
+                          -> Result<UIntRangeRangeExpression, Error> {
+    let dividend = bin_expr_parts.lhs.as_typed().as_range_expr()?.clone_range_expr();
+    let divisor = bin_expr_parts.rhs.as_typed().as_range_expr()?.clone_range_expr();
+    Ok(UIntRangeRangeExpression::new(dividend, divisor))
 }
 
 fn replace_with_bin_expr<E: Expression + 'static>(trees: &mut Vec<Tree>,

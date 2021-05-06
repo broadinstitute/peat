@@ -4,10 +4,12 @@ use crate::value::Value;
 use crate::value::Value::UIntValue;
 use crate::types::Bindings;
 use crate::error::Error;
+use crate::expression::Type::UIntRangeRange;
 
 pub(crate) enum Type {
     UInt,
     UIntRange,
+    UIntRangeRange,
 }
 
 pub(crate) trait Expression: Display {
@@ -20,6 +22,7 @@ pub(crate) trait Expression: Display {
 pub(crate) enum AsTyped<'a> {
     AsUInt(&'a dyn UIntExpression),
     AsUIntRange(&'a UIntRangeExpression),
+    AsUIntRangeRange(&'a UIntRangeExpression),
 }
 
 impl AsTyped<'_> {
@@ -27,13 +30,18 @@ impl AsTyped<'_> {
         match self {
             AsTyped::AsUInt(_) => { Type::UInt }
             AsTyped::AsUIntRange(_) => { Type::UIntRange }
+            AsTyped::AsUIntRangeRange(_) => { Type::UIntRangeRange }
         }
     }
     pub(crate) fn as_int_expr(&self) -> Result<&dyn UIntExpression, Error> {
         match self {
             AsTyped::AsUInt(uint_expr) => Ok(*uint_expr),
             AsTyped::AsUIntRange(_) =>
-                Err(Error::from("Expected integer expression, but got range expression."))
+                Err(Error::from("Expected integer expression, but got range expression.")),
+            AsTyped::AsUIntRangeRange(_) =>
+                Err(Error::from(
+                    "Expected integer expression, but got range of ranges expression."
+                )),
         }
     }
 
@@ -42,7 +50,11 @@ impl AsTyped<'_> {
             AsTyped::AsUInt(_) =>
                 Err(Error::from("Expected range expression, but got integer expression.")),
             AsTyped::AsUIntRange(range_expr) =>
-                Ok(*range_expr)
+                Ok(*range_expr),
+            AsTyped::AsUIntRangeRange(_) =>
+                Err(Error::from(
+                    "Expected range expression, but got range of ranges expression."
+                )),
         }
     }
 }
@@ -65,6 +77,11 @@ pub(crate) struct UIntRangeExpression {
     until: Box<dyn UIntExpression>,
 }
 
+pub(crate) struct UIntRangeRangeExpression {
+    dividend: Box<UIntRangeExpression>,
+    divisor: Box<UIntRangeExpression>,
+}
+
 impl UIntLiteral {
     pub(crate) fn new(value: u64) -> UIntLiteral { UIntLiteral { value } }
 }
@@ -77,6 +94,19 @@ impl UIntRangeExpression {
     pub(crate) fn new(from: Box<dyn UIntExpression>, until: Box<dyn UIntExpression>)
                       -> UIntRangeExpression {
         UIntRangeExpression { from, until }
+    }
+    pub(crate) fn clone_range_expr(&self) -> Box<UIntRangeExpression> {
+        Box::new(
+            UIntRangeExpression::new(self.from.clone_int_expr(),
+                                     self.until.clone_int_expr())
+        )
+    }
+}
+
+impl UIntRangeRangeExpression {
+    pub(crate) fn new(dividend: Box<UIntRangeExpression>, divisor: Box<UIntRangeExpression>)
+                      -> UIntRangeRangeExpression {
+        UIntRangeRangeExpression { dividend, divisor }
     }
 }
 
@@ -120,15 +150,6 @@ impl UIntExpression for UIntVariable {
     }
     fn clone_int_expr(&self) -> Box<dyn UIntExpression> {
         Box::new(UIntVariable { id: self.id.clone() })
-    }
-}
-
-impl UIntRangeExpression {
-    fn clone_range_expr(&self) -> Box<dyn Expression> {
-        Box::new(UIntRangeExpression {
-            from: self.from.clone_int_expr(),
-            until: self.until.clone_int_expr(),
-        })
     }
 }
 
