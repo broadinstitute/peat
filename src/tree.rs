@@ -54,11 +54,11 @@ pub(crate) fn reduce(tokens: Vec<Token>) -> Result<Box<dyn Expression>, Error> {
 
 struct BinExprParts<'a> {
     op_pos: usize,
-    lhs: &'a Box<dyn Expression>,
-    rhs: &'a Box<dyn Expression>,
+    lhs: &'a dyn Expression,
+    rhs: &'a dyn Expression,
 }
 
-fn get_bin_expr_parts(trees: &Vec<Tree>, op: Token) -> Result<Option<BinExprParts>, Error> {
+fn get_bin_expr_parts(trees: &[Tree], op: Token) -> Result<Option<BinExprParts>, Error> {
     let pos_opt = trees.iter().position(|tree| {
         match tree {
             Tree::TokenNode(token) => token == &op,
@@ -67,39 +67,31 @@ fn get_bin_expr_parts(trees: &Vec<Tree>, op: Token) -> Result<Option<BinExprPart
     });
     match pos_opt {
         Some(op_pos) => {
-            if op_pos == 0 {
-                Err(Error::from(format!("An expression cannot start with {}.", op)))
-            } else if op_pos == trees.len() - 1 {
-                Err(Error::from(format!("An expression cannot end with {}.", op)))
-            } else {
-                let lhs_tree =
-                    trees.get(op_pos - 1)
-                        .ok_or(Error::from(
-                            format!("An expression cannot start with {}.", op))
-                        )?;
-                let lhs = match lhs_tree {
-                    Tree::TokenNode(token) => {
-                        return Err(Error::from(
-                            format!("Expected expression before {}, but got {}", op, token))
-                        );
-                    }
-                    Tree::ExpressionNode(expression) => { expression }
-                };
-                let rhs_tree =
-                    trees.get(op_pos + 1)
-                        .ok_or(Error::from(
-                            format!("An expression cannot end with {}.", op))
-                        )?;
-                let rhs = match rhs_tree {
-                    Tree::TokenNode(token) => {
-                        return Err(Error::from(
-                            format!("Expected expression after {}, but got {}", op, token))
-                        );
-                    }
-                    Tree::ExpressionNode(expression) => { expression }
-                };
-                Ok(Some(BinExprParts { op_pos, lhs, rhs }))
-            }
+            let lhs_tree =
+                trees.get(op_pos - 1)
+                    .ok_or_else(|| Error::from(
+                        format!("An expression cannot start with {}.", op)))?;
+            let lhs = match lhs_tree {
+                Tree::TokenNode(token) => {
+                    return Err(Error::from(
+                        format!("Expected expression before {}, but got {}", op, token))
+                    );
+                }
+                Tree::ExpressionNode(expression) => { expression.as_ref() }
+            };
+            let rhs_tree =
+                trees.get(op_pos + 1)
+                    .ok_or_else(|| Error::from(
+                        format!("An expression cannot end with {}.", op)))?;
+            let rhs = match rhs_tree {
+                Tree::TokenNode(token) => {
+                    return Err(Error::from(
+                        format!("Expected expression after {}, but got {}", op, token))
+                    );
+                }
+                Tree::ExpressionNode(expression) => { expression.as_ref() }
+            };
+            Ok(Some(BinExprParts { op_pos, lhs, rhs }))
         }
         None => Ok(None)
     }

@@ -13,8 +13,8 @@ use crate::{
 use crate::declaration::Iteration;
 
 fn parse_version_line(line: &str) -> Result<Version, Error> {
-    if line.starts_with("Peat") {
-        let version_str = line[4..].trim();
+    if let Some(stripped) = line.strip_prefix("Peat") {
+        let version_str = stripped.trim();
         Version::parse(version_str)
     } else {
         Err(PeatError(String::from("Version line needs to start with \"Peat\"")))
@@ -22,20 +22,21 @@ fn parse_version_line(line: &str) -> Result<Version, Error> {
 }
 
 fn parse_expression(tokenizer: Tokenizer) -> Result<Box<dyn Expression>, Error> {
-    Ok(tree::reduce(tokenizer.write_to_vec()?)?)
+    tree::reduce(tokenizer.write_to_vec()?)
 }
 
 fn parse_declaration(decl_str: &str) -> Result<Declaration, Error> {
     let mut tokenizer = Tokenizer::new(String::from(decl_str));
     let token1 =
-        tokenizer.strip_token()?.ok_or(Error::from("Empty declaration"))?;
+        tokenizer.strip_token()?.ok_or_else(|| Error::from("Empty declaration"))?;
     let id =
         if let Token::Id(id) = token1 {
             id
         } else {
             return Err(Error::from("Declaration needs to start with an identifier"));
         };
-    let token2 = tokenizer.strip_token()?.ok_or(Error::from("Missing '='"))?;
+    let token2 =
+        tokenizer.strip_token()?.ok_or_else(|| Error::from("Missing '=' or '<-'."))?;
     match token2 {
         Token::Assign => {
             let expression = parse_expression(tokenizer)?;
@@ -63,7 +64,7 @@ fn is_header_end_line(line: &str) -> bool {
 type InputLines = Lines<BufReader<Box<dyn Read>>>;
 
 fn read_next_line(lines: &mut InputLines) -> Result<String, Error> {
-    Ok(lines.next().ok_or(Error::from("File is incomplete."))??)
+    Ok(lines.next().ok_or_else(|| Error::from("File is incomplete."))??)
 }
 
 fn parse_declarations(lines: &mut InputLines)

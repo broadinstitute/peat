@@ -83,14 +83,15 @@ impl Tokenizer {
             Ok(Some((Token::Pick, String::from(stripped))))
         } else if trimmed.starts_with(is_valid_id_start) {
             let pos =
-                trimmed.find(|ch| { !is_valid_id_part(ch) }).unwrap_or(trimmed.len());
+                trimmed.find(|ch| { !is_valid_id_part(ch) }).unwrap_or_else(|| trimmed.len());
             let (id_str, str_new) = trimmed.split_at(pos);
             let id_string = String::from(id_str);
             let remainder = String::from(str_new);
             Ok(Some((Token::Id(id_string), remainder)))
-        } else if trimmed.starts_with(|ch: char| { ch.is_digit(10) }) {
+        } else if trimmed.starts_with(|ch: char| ch.is_digit(10)) {
             let pos =
-                trimmed.find(|ch: char| { !ch.is_digit(10) }).unwrap_or(trimmed.len());
+                trimmed
+                    .find(|ch: char| { !ch.is_digit(10) }).unwrap_or_else(|| trimmed.len());
             let (num_str, str_new) = trimmed.split_at(pos);
             let number = num_str.parse::<u64>().unwrap();
             let remainder = String::from(str_new);
@@ -114,7 +115,7 @@ impl Tokenizer {
         let mut tokens = Vec::new();
         loop {
             match self.strip_token()? {
-                None => { break Ok(tokens) }
+                None => { break Ok(tokens); }
                 Some(token) => { tokens.push(token) }
             }
         }

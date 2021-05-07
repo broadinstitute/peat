@@ -18,7 +18,7 @@ fn bindings_for_assign(bindings_result: Result<Bindings, Error>,
     let bindings = bindings_result?;
     let id = assignment.id.clone();
     let value = assignment.expression.eval(&bindings)?;
-    Ok(bindings.with_value(id.clone(), value))
+    Ok(bindings.with_value(id, value))
 }
 
 fn bindings_iter_for_iteration(bindings_result: Result<Bindings, Error>,

@@ -17,16 +17,16 @@ pub(crate) struct UIntRangeRange {
 
 #[derive(Copy, Clone)]
 pub(crate) enum Value {
-    UIntValue(u64),
-    UIntRangeValue(UIntRange),
-    UIntRangeRangeValue(UIntRangeRange),
+    UInt(u64),
+    UIntRange(UIntRange),
+    UIntRangeRange(UIntRangeRange),
 }
 
 impl UIntRange {
     pub(crate) fn new(from: u64, until: u64) -> UIntRange { UIntRange { from, until } }
     pub(crate) fn len(&self) -> u64 { self.until - self.from }
     pub(crate) fn contains(&self, i: u64) -> bool { i >= self.from && i < self.until }
-    pub(crate) fn to_range(&self) -> Range<u64> { self.from .. self.until }
+    pub(crate) fn to_range(&self) -> Range<u64> { self.from..self.until }
 }
 
 fn ceil_div(dividend: u64, divisor: u64) -> Result<u64, Error> {
@@ -57,12 +57,12 @@ impl UIntRangeRange {
 impl Value {
     pub(crate) fn as_int(&self) -> Result<u64, Error> {
         match self {
-            Value::UIntValue(ui) => Ok(*ui),
-            Value::UIntRangeValue(ui_rng) =>
+            Value::UInt(ui) => Ok(*ui),
+            Value::UIntRange(ui_rng) =>
                 Err(Error::from(
                     format!("Expected integer, but got range {}", ui_rng)
                 )),
-            Value::UIntRangeRangeValue(ui_rng_rng) =>
+            Value::UIntRangeRange(ui_rng_rng) =>
                 Err(Error::from(
                     format!("Expected integer, but got range of ranges {}.", ui_rng_rng)
                 ))
@@ -71,12 +71,12 @@ impl Value {
 
     pub(crate) fn as_range(&self) -> Result<UIntRange, Error> {
         match self {
-            Value::UIntValue(ui) =>
+            Value::UInt(ui) =>
                 Err(Error::from(
                     format!("Expected range, but got integer {}", ui)
                 )),
-            Value::UIntRangeValue(ui_rng) => Ok(*ui_rng),
-            Value::UIntRangeRangeValue(ui_rng_rng) =>
+            Value::UIntRange(ui_rng) => Ok(*ui_rng),
+            Value::UIntRangeRange(ui_rng_rng) =>
                 Err(Error::from(
                     format!("Expected range, but got range of ranges {}.", ui_rng_rng)
                 ))
@@ -85,26 +85,22 @@ impl Value {
 
     pub(crate) fn as_range_range(&self) -> Result<UIntRangeRange, Error> {
         match self {
-            Value::UIntValue(ui) =>
+            Value::UInt(ui) =>
                 Err(Error::from(
                     format!("Expected range of ranges, but got integer {}", ui)
                 )),
-            Value::UIntRangeValue(ui_rng) =>
+            Value::UIntRange(ui_rng) =>
                 Err(Error::from(
                     format!("Expected range of ranges, but got range {}", ui_rng)
                 )),
-            Value::UIntRangeRangeValue(ui_rng_rng) => Ok(*ui_rng_rng)
+            Value::UIntRangeRange(ui_rng_rng) => Ok(*ui_rng_rng)
         }
     }
 
-    pub(crate) fn new_int(ui: u64) -> Value { Value::UIntValue(ui) }
+    pub(crate) fn new_int(ui: u64) -> Value { Value::UInt(ui) }
 
     pub(crate) fn new_range(from: u64, until: u64) -> Value {
-        Value::UIntRangeValue(UIntRange { from, until })
-    }
-
-    pub(crate) fn new_range_range(dividend: UIntRange, divisor: UIntRange) -> Value {
-        Value::UIntRangeRangeValue(UIntRangeRange { dividend, divisor })
+        Value::UIntRange(UIntRange { from, until })
     }
 }
 
@@ -123,9 +119,9 @@ impl Display for UIntRangeRange {
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Value::UIntValue(ui) => { Display::fmt(ui, f) }
-            Value::UIntRangeValue(uint_range) => { Display::fmt(uint_range, f) }
-            Value::UIntRangeRangeValue(uint_range_range) => {
+            Value::UInt(ui) => { Display::fmt(ui, f) }
+            Value::UIntRange(uint_range) => { Display::fmt(uint_range, f) }
+            Value::UIntRangeRange(uint_range_range) => {
                 Display::fmt(uint_range_range, f)
             }
         }

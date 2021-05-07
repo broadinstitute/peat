@@ -1,7 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::fmt;
 use crate::value::{Value, UIntRange, UIntRangeRange};
-use crate::value::Value::UIntValue;
 use crate::types::Bindings;
 use crate::error::Error;
 
@@ -19,25 +18,18 @@ pub(crate) trait Expression: Display {
 }
 
 pub(crate) enum AsTyped<'a> {
-    AsUInt(&'a dyn UIntExpression),
-    AsUIntRange(&'a dyn UIntRangeExpression),
-    AsUIntRangeRange(&'a UIntRangeRangeExpression),
+    UInt(&'a dyn UIntExpression),
+    UIntRange(&'a dyn UIntRangeExpression),
+    UIntRangeRange(&'a UIntRangeRangeExpression),
 }
 
 impl AsTyped<'_> {
-    fn get_type(&self) -> Type {
-        match self {
-            AsTyped::AsUInt(_) => { Type::UInt }
-            AsTyped::AsUIntRange(_) => { Type::UIntRange }
-            AsTyped::AsUIntRangeRange(_) => { Type::UIntRangeRange }
-        }
-    }
     pub(crate) fn as_int_expr(&self) -> Result<&dyn UIntExpression, Error> {
         match self {
-            AsTyped::AsUInt(uint_expr) => Ok(*uint_expr),
-            AsTyped::AsUIntRange(_) =>
+            AsTyped::UInt(uint_expr) => Ok(*uint_expr),
+            AsTyped::UIntRange(_) =>
                 Err(Error::from("Expected integer expression, but got range expression.")),
-            AsTyped::AsUIntRangeRange(_) =>
+            AsTyped::UIntRangeRange(_) =>
                 Err(Error::from(
                     "Expected integer expression, but got range of ranges expression."
                 )),
@@ -45,11 +37,11 @@ impl AsTyped<'_> {
     }
     pub(crate) fn as_range_expr(&self) -> Result<&dyn UIntRangeExpression, Error> {
         match self {
-            AsTyped::AsUInt(_) =>
+            AsTyped::UInt(_) =>
                 Err(Error::from("Expected range expression, but got integer expression.")),
-            AsTyped::AsUIntRange(range_expr) =>
+            AsTyped::UIntRange(range_expr) =>
                 Ok(*range_expr),
-            AsTyped::AsUIntRangeRange(_) =>
+            AsTyped::UIntRangeRange(_) =>
                 Err(Error::from(
                     "Expected range expression, but got range of ranges expression."
                 )),
@@ -57,11 +49,11 @@ impl AsTyped<'_> {
     }
     pub(crate) fn as_range_range_expr(&self) -> Result<&UIntRangeRangeExpression, Error> {
         match self {
-            AsTyped::AsUInt(_) =>
+            AsTyped::UInt(_) =>
                 Err(Error::from("Expected range range expression, but got integer expression.")),
-            AsTyped::AsUIntRange(_) =>
+            AsTyped::UIntRange(_) =>
                 Err(Error::from("Expected range range expression, but got range expression.")),
-            AsTyped::AsUIntRangeRange(range_range_expr) =>
+            AsTyped::UIntRangeRange(range_range_expr) =>
                 Ok(*range_range_expr)
         }
     }
@@ -138,9 +130,9 @@ impl UIntPickRangeExpression {
 }
 
 impl Expression for UIntLiteral {
-    fn eval(&self, _: &Bindings) -> Result<Value, Error> { Ok(UIntValue(self.value)) }
+    fn eval(&self, _: &Bindings) -> Result<Value, Error> { Ok(Value::UInt(self.value)) }
     fn get_type(&self) -> Type { Type::UInt }
-    fn as_typed<'a>(&'a self) -> AsTyped<'a> { AsTyped::AsUInt::<'a>(self) }
+    fn as_typed<'a>(&'a self) -> AsTyped<'a> { AsTyped::UInt::<'a>(self) }
     fn clone_expr(&self) -> Box<dyn Expression> { Box::new(UIntLiteral { value: self.value }) }
 }
 
@@ -160,7 +152,7 @@ impl Expression for UIntVariable {
     }
 
     fn get_type(&self) -> Type { Type::UInt }
-    fn as_typed<'a>(&'a self) -> AsTyped<'a> { AsTyped::AsUInt::<'a>(self) }
+    fn as_typed<'a>(&'a self) -> AsTyped<'a> { AsTyped::UInt::<'a>(self) }
     fn clone_expr(&self) -> Box<dyn Expression> {
         Box::new(UIntVariable { id: self.id.clone() })
     }
@@ -169,7 +161,7 @@ impl Expression for UIntVariable {
 impl UIntExpression for UIntVariable {
     fn eval_int(&self, bindings: &Bindings) -> Result<u64, Error> {
         match bindings.get(&self.id) {
-            Some(UIntValue(ui)) => Ok(ui),
+            Some(Value::UInt(ui)) => Ok(ui),
             Some(value) =>
                 Err(Error::from(format!("Expected unsigned int, but got {}.", value))),
             None => Err(Error::from(format!("Unknown identifier {}.", self.id)))
@@ -188,7 +180,7 @@ impl Expression for UIntSimpleRangeExpression {
     }
 
     fn get_type(&self) -> Type { Type::UIntRange }
-    fn as_typed(&self) -> AsTyped { AsTyped::AsUIntRange(self) }
+    fn as_typed(&self) -> AsTyped { AsTyped::UIntRange(self) }
 
     fn clone_expr(&self) -> Box<dyn Expression> {
         Box::new(
@@ -216,11 +208,11 @@ impl Expression for UIntRangeRangeExpression {
     fn eval(&self, bindings: &Bindings) -> Result<Value, Error> {
         let dividend = self.dividend.eval(bindings)?.as_range()?;
         let divisor = self.divisor.eval(bindings)?.as_range()?;
-        Ok(Value::UIntRangeRangeValue(UIntRangeRange::new(dividend, divisor)))
+        Ok(Value::UIntRangeRange(UIntRangeRange::new(dividend, divisor)))
     }
 
     fn get_type(&self) -> Type { Type::UIntRangeRange }
-    fn as_typed(&self) -> AsTyped { AsTyped::AsUIntRangeRange(self) }
+    fn as_typed(&self) -> AsTyped { AsTyped::UIntRangeRange(self) }
 
     fn clone_expr(&self) -> Box<dyn Expression> {
         Box::new(UIntRangeRangeExpression::new(self.dividend.clone_range_expr(),
@@ -232,11 +224,11 @@ impl Expression for UIntPickRangeExpression {
     fn eval(&self, bindings: &Bindings) -> Result<Value, Error> {
         let groups = self.groups.eval(bindings)?.as_range_range()?;
         let pick = self.pick.eval(bindings)?.as_int()?;
-        Ok(Value::UIntRangeValue(groups.pick(pick)?))
+        Ok(Value::UIntRange(groups.pick(pick)?))
     }
 
     fn get_type(&self) -> Type { Type::UIntRange }
-    fn as_typed(&self) -> AsTyped { AsTyped::AsUIntRange(self) }
+    fn as_typed(&self) -> AsTyped { AsTyped::UIntRange(self) }
 
     fn clone_expr(&self) -> Box<dyn Expression> {
         Box::new(UIntPickRangeExpression::new(self.groups.clone_range_range_expr(),
@@ -248,7 +240,7 @@ impl UIntRangeExpression for UIntPickRangeExpression {
     fn eval_range(&self, bindings: &Bindings) -> Result<UIntRange, Error> {
         let groups = self.groups.eval(bindings)?.as_range_range()?;
         let pick = self.pick.eval(bindings)?.as_int()?;
-        Ok(groups.pick(pick)?)
+        groups.pick(pick)
     }
 
     fn clone_range_expr(&self) -> Box<dyn UIntRangeExpression> {

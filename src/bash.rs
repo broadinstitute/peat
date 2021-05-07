@@ -13,7 +13,8 @@ pub(crate) fn run_bash_script(string: String) -> Result<(), Error> {
     let status = child.wait()?;
     if !status.success() {
         let status_code =
-            status.code().ok_or(Error::from("Process failed and no exit code available."))?;
+            status.code()
+                .ok_or_else(|| Error::from("Process failed and no exit code available."))?;
         Err(Error::from(format!("Process failed with exit code {}.", status_code)))
     } else {
         Ok(())
