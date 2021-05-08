@@ -1,27 +1,20 @@
-mod error;
-mod peatcode;
-mod expression;
-mod value;
-mod parse;
-mod version;
-mod types;
-mod tokenize;
-mod declaration;
-mod evaluate;
-mod substitute;
-mod matryoshka;
-mod tree;
-mod bash;
-
-use error::Error;
 use std::env;
-use crate::error::Error::PeatError;
+use std::fs::File;
 use std::io::{BufReader, Read};
 use std::io;
-use std::fs::File;
+
+use peatcode::evaluate::evaluate_declarations;
+use peatcode::parse;
+use peatcode::types::Bindings;
+use util::error::Error;
+
 use crate::peatcode::PeatCode;
-use crate::evaluate::evaluate_declarations;
-use crate::types::Bindings;
+use crate::util::error::Error::PeatError;
+
+mod util;
+mod peatcode;
+mod substitute;
+mod bash;
 
 fn get_input_file_name() -> Result<Option<String>, Error> {
     let mut args = env::args();

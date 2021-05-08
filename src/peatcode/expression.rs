@@ -1,8 +1,8 @@
 use std::fmt::{Display, Formatter};
 use std::fmt;
-use crate::value::{Value, UIntRange, UIntRangeRange};
-use crate::types::Bindings;
-use crate::error::Error;
+use crate::peatcode::value::{Value, UIntRange, UIntRangeRange};
+use crate::peatcode::types::Bindings;
+use crate::util::error::Error;
 
 pub(crate) enum Type {
     UInt,

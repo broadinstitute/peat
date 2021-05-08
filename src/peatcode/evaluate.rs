@@ -1,9 +1,13 @@
-use crate::peatcode::PeatCode;
-use crate::types::{Bindings, BindingsIterator};
-use crate::error::Error;
-use crate::declaration::{Declaration, Assignment, Iteration};
-use crate::types;
-use crate::value::Value;
+use crate::{
+    util::error::Error,
+    peatcode::{
+        types::{Bindings, BindingsIterator},
+        PeatCode,
+        declaration::{Declaration, Assignment, Iteration},
+        types,
+        value::Value
+    }
+};
 
 pub(crate) fn evaluate_declarations(peat_code: &PeatCode) -> BindingsIterator {
     let mut bindings_iter = types::new_bindings_iter();

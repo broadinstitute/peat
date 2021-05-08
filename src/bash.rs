@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::Write;
-use crate::error::Error;
+use crate::util::error::Error;
 use std::process::Command;
 
 pub(crate) fn run_bash_script(string: String) -> Result<(), Error> {

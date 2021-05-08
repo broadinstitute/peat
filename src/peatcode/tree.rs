@@ -1,7 +1,7 @@
-use crate::tokenize::Token;
-use crate::expression::{Expression, UIntRangeRangeExpression, UIntSimpleRangeExpression,
-                        UIntPickRangeExpression, UIntVariable, UIntLiteral};
-use crate::error::Error;
+use crate::peatcode::tokenize::Token;
+use crate::peatcode::expression::{Expression, UIntRangeRangeExpression, UIntSimpleRangeExpression,
+                                  UIntPickRangeExpression, UIntVariable, UIntLiteral};
+use crate::util::error::Error;
 use std::iter;
 
 enum Tree {

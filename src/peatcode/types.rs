@@ -1,6 +1,6 @@
-use crate::value::Value;
-use crate::matryoshka;
-use crate::error::Error;
+use crate::peatcode::value::Value;
+use crate::util::matryoshka;
+use crate::util::error::Error;
 
 pub(crate) type Bindings = matryoshka::MatryoshkaMap<String, Value>;
 pub(crate) type BindingsIterator<'a> = Box<dyn Iterator<Item=Result<Bindings, Error>> + 'a>;

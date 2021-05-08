@@ -1,8 +1,8 @@
 use std::fmt::{Display, Formatter};
 use std::fmt;
 use crate::{
-    error::Error,
-    error::Error::PeatError
+    util::error::Error,
+    util::error::Error::PeatError
 };
 
 pub(crate) enum Version {

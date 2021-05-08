@@ -1,16 +1,22 @@
 use std::io::{BufRead, BufReader, Lines, Read};
 
 use crate::{
-    declaration::{Assignment, Declaration},
-    error::Error,
-    error::Error::PeatError,
-    expression::Expression,
-    peatcode::PeatCode,
-    tokenize::{Token, Tokenizer},
-    tree,
-    version::Version,
+    util::error::Error::PeatError,
+    util::error::Error,
+    peatcode::{
+        PeatCode,
+        declaration::{
+            Assignment,
+            Declaration,
+            Iteration
+        },
+        expression::Expression,
+        tokenize::Token,
+        tokenize::Tokenizer,
+        tree,
+        version::Version
+    }
 };
-use crate::declaration::Iteration;
 
 fn parse_version_line(line: &str) -> Result<Version, Error> {
     if let Some(stripped) = line.strip_prefix("Peat") {

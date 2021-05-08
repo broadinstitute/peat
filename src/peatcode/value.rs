@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::fmt;
-use crate::error::Error;
+use crate::util::error::Error;
 use std::ops::Range;
 
 #[derive(Copy, Clone)]

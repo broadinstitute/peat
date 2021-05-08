@@ -1,5 +1,5 @@
-use crate::types::Bindings;
-use crate::error::Error;
+use crate::peatcode::types::Bindings;
+use crate::util::error::Error;
 
 mod delims {
     pub(crate) const PRE: &str = "<:";
