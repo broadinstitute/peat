@@ -2,13 +2,13 @@ use std::fs::File;
 use std::io::Write;
 use crate::util::error::Error;
 use std::process::Command;
+use std::path::Path;
 
-pub(crate) fn run_bash_script(string: String) -> Result<(), Error> {
-    let file_name = "script.sh";
-    let mut file = File::create(file_name)?;
+pub(crate) fn run_bash_script(script_path: &Path, string: &String) -> Result<(), Error> {
+    let mut file = File::create(script_path)?;
     file.write_all(string.as_ref())?;
     let mut cmd = Command::new("bash");
-    let cmd_with_arg = cmd.arg(file_name);
+    let cmd_with_arg = cmd.arg(script_path);
     let mut child = cmd_with_arg.spawn()?;
     let status = child.wait()?;
     if !status.success() {

@@ -10,11 +10,13 @@ use util::error::Error;
 
 use crate::peatcode::PeatCode;
 use crate::util::error::Error::PeatError;
+use crate::script_files::ScriptNameGenerator;
 
 mod util;
 mod peatcode;
 mod substitute;
 mod bash;
+mod script_files;
 
 fn get_input_file_name() -> Result<Option<String>, Error> {
     let mut args = env::args();
@@ -43,11 +45,13 @@ pub fn run() -> Result<(), Error> {
     println!("{}", peat_code.body);
     let bindings_iter = evaluate_declarations(&peat_code);
     println!("Now evaluating");
+    let mut script_name_gen = ScriptNameGenerator::from_temp_dir()?;
     for bindings_result in bindings_iter {
         let bindings = bindings_result?;
         print_bindings(&bindings);
+        let script_path = script_name_gen.next();
         let body_resolved = substitute::substitute(&peat_code.body, &bindings)?;
-        match bash::run_bash_script(body_resolved) {
+        match bash::run_bash_script(script_path.as_path(), &body_resolved) {
             Ok(_) => { println!("Process completed successfully.")}
             Err(error) => { println!("Process failed: {}", error)}
         }
