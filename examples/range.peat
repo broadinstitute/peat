@@ -2,4 +2,4 @@ Peat 1.0
 X = 1
 Y <- 0 .. 3
 ===
-echo "X is <:X:> and Y is <:Y:>"
+echo "Hello, range! X is <:X:> and Y is <:Y:>"

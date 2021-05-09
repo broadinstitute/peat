@@ -3,5 +3,5 @@ X=1
 Y=2
 Z=X
 ===
-echo "X is <:X:>, Y is <:Y:> and Z is <:Z:>"
+echo "Hello, declarations! X is <:X:>, Y is <:Y:> and Z is <:Z:>"
 
