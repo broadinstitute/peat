@@ -1,0 +1,7 @@
+Peat 1.0
+N_JOBS = 10
+N_GROUPS = 3
+I_GROUP = 1
+I <- 0 .. N_JOBS / 0 .. N_GROUPS $ I_GROUP
+===
+echo "This is job <:I:> of <:N_JOBS:> jobs, part of group <:I_GROUP:> of <:N_GROUPS:> groups."

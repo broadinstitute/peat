@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use std::fmt;
-use crate::peatcode::value::{Value, UIntRange, UIntRangeRange};
-use crate::peatcode::types::Bindings;
+use crate::code::value::{Value, UIntRange, UIntRangeRange};
+use crate::code::types::Bindings;
 use crate::util::error::Error;
 
 pub(crate) enum Type {

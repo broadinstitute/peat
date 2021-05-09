@@ -1,2 +1,2 @@
-pub(crate) mod error;
+pub mod error;
 pub mod matryoshka;

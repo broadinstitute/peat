@@ -3,7 +3,7 @@ use std::io::{BufRead, BufReader, Lines, Read};
 use crate::{
     util::error::Error::PeatError,
     util::error::Error,
-    peatcode::{
+    code::{
         PeatCode,
         declaration::{
             Assignment,

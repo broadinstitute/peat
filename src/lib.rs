@@ -1,62 +1,57 @@
-use std::env;
-use std::fs::File;
-use std::io::{BufReader, Read};
-use std::io;
-
-use peatcode::evaluate::evaluate_declarations;
-use peatcode::parse;
-use peatcode::types::Bindings;
+use code::types::Bindings;
 use util::error::Error;
+use code::{PeatCode, evaluate};
+use script_files::ScriptNameGenerator;
+use crate::config::Config;
 
-use crate::peatcode::PeatCode;
-use crate::util::error::Error::PeatError;
-use crate::script_files::ScriptNameGenerator;
-
-mod util;
-mod peatcode;
+pub mod util;
+mod code;
 mod substitute;
 mod bash;
 mod script_files;
+mod config;
 
-fn get_input_file_name() -> Result<Option<String>, Error> {
-    let mut args = env::args();
-    let input_file = Ok(args.nth(1));
-    if let Some(superfluous_arg) = args.next() {
-        return Err(PeatError(format!("Unexpected argument {}", superfluous_arg)));
-    }
-    input_file
-}
-
-fn get_peat_code() -> Result<PeatCode, Error> {
-    let input_file_name = get_input_file_name()?;
-    let source: Box<dyn Read> = match input_file_name {
-        Some(file_path) => Box::new(File::open(file_path)?),
-        None => Box::new(io::stdin())
-    };
-    let input_buf_reader = BufReader::new(source);
-    parse::parse_input(input_buf_reader)
-}
-
-pub fn run() -> Result<(), Error> {
-    let peat_code = get_peat_code()?;
-    println!("Peat file uses version {}", peat_code.version);
-    print_declarations(&peat_code);
-    println!("Template:");
-    println!("{}", peat_code.body);
-    let bindings_iter = evaluate_declarations(&peat_code);
-    println!("Now evaluating");
-    let mut script_name_gen = ScriptNameGenerator::from_temp_dir()?;
-    for bindings_result in bindings_iter {
-        let bindings = bindings_result?;
-        print_bindings(&bindings);
-        let script_path = script_name_gen.next();
-        let body_resolved = substitute::substitute(&peat_code.body, &bindings)?;
-        match bash::run_bash_script(script_path.as_path(), &body_resolved) {
-            Ok(_) => { println!("Process completed successfully.")}
-            Err(error) => { println!("Process failed: {}", error)}
+pub fn lib_main() {
+    match config::get_config() {
+        Ok(peat_config) => {
+            match run(peat_config) {
+                Err(error) => {
+                    eprintln!("Error: {}", error)
+                }
+                Ok(()) => println!("Done!")
+            }
+        }
+        Err(error) => {
+            if error.is_real_error() {
+                eprintln!("Error: {}", error)
+            } else {
+                println!("{}", error)
+            }
         }
     }
-    println!("Done!");
+}
+
+fn run(peat_config: Config) -> Result<(), Error> {
+    let peat_code = code::get_peat_code(&peat_config.input_file)?;
+    println!("Peat file uses version {}", peat_code.version);
+    print_declarations(&peat_code);
+    if !peat_config.parse_only {
+        let bindings_iter = evaluate::evaluate_declarations(&peat_code);
+        println!("Now evaluating");
+        let mut script_name_gen = ScriptNameGenerator::from_temp_dir()?;
+        for bindings_result in bindings_iter {
+            let bindings = bindings_result?;
+            print_bindings(&bindings);
+            if !peat_config.dry_run {
+                let script_path = script_name_gen.next();
+                let body_resolved = substitute::substitute(&peat_code.body, &bindings)?;
+                match bash::run_bash_script(script_path.as_path(), &body_resolved) {
+                    Ok(_) => { println!("Process completed successfully.") }
+                    Err(error) => { eprintln!("Process failed: {}", error) }
+                }
+            }
+        }
+    }
     Ok(())
 }
 

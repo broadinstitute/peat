@@ -1,4 +1,4 @@
-use crate::peatcode::types::Bindings;
+use crate::code::types::Bindings;
 use crate::util::error::Error;
 
 mod delims {

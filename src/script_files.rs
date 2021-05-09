@@ -7,10 +7,10 @@ pub(crate) struct ScriptNameGenerator {
 }
 
 impl ScriptNameGenerator {
-    pub(crate) fn from_temp_dir<'a>() -> Result<ScriptNameGenerator, Error> {
+    pub(crate) fn from_temp_dir() -> Result<ScriptNameGenerator, Error> {
         Ok(ScriptNameGenerator::new(tempfile::tempdir()?.into_path()))
     }
-    pub(crate) fn new<'a>(dir: PathBuf) -> ScriptNameGenerator {
+    pub(crate) fn new(dir: PathBuf) -> ScriptNameGenerator {
         let counter = 0u32;
         ScriptNameGenerator { dir, counter }
     }

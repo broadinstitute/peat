@@ -1,6 +1,6 @@
-use crate::peatcode::tokenize::Token;
-use crate::peatcode::expression::{Expression, UIntRangeRangeExpression, UIntSimpleRangeExpression,
-                                  UIntPickRangeExpression, UIntVariable, UIntLiteral};
+use crate::code::tokenize::Token;
+use crate::code::expression::{Expression, UIntRangeRangeExpression, UIntSimpleRangeExpression,
+                              UIntPickRangeExpression, UIntVariable, UIntLiteral};
 use crate::util::error::Error;
 use std::iter;
 

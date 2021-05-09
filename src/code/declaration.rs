@@ -1,4 +1,4 @@
-use crate::peatcode::expression::{Expression, UIntRangeExpression};
+use crate::code::expression::{Expression, UIntRangeExpression};
 use std::fmt::{Display, Formatter};
 use std::fmt;
 

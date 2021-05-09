@@ -1,6 +1,6 @@
 use crate::{
     util::error::Error,
-    peatcode::{
+    code::{
         types::{Bindings, BindingsIterator},
         PeatCode,
         declaration::{Declaration, Assignment, Iteration},
