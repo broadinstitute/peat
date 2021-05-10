@@ -1,0 +1,4 @@
+Peat 1.0
+I <- 0 .. 10 / 0 .. 3 $ 1
+===
+echo "This is job <:I:> of 10 jobs, part of group 1 of 3 groups."
