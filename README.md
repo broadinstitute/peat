@@ -365,3 +365,34 @@ Peat 1.0.0 is available as Docker image for Alpine and Ubuntu:
 
 Other images may be available upon request, or create take inspiration from
 the [Dockerfiles in Peat repo](https://github.com/broadinstitute/peat/tree/main/docker) to make your own.
+
+## WDL scatter without Peat
+
+There is
+a [simple example of scatter in WDL without Peat in the Peat repo](https://github.com/broadinstitute/peat/blob/main/wdl/scatter_witout_peat.wdl)
+. For simplicity, the jobs to be scattered just write a line to a file. Here is the scatter clause:
+
+```
+    scatter(i_job in range(n_jobs)) {
+        String worker_out_file_name = worker_out_file_name_base + "." + i_job + ".txt"
+        call worker {
+            input:
+                i_job = i_job,
+                out_file_name = worker_out_file_name
+        }
+    }
+```
+
+From inside the scatter block, `worker.out_file` refers to the output file of the worker and is of type `File`. 
+From outside
+the scatter block, on the other hand, `worker.outfile` is an `Array[File]` and refers to all worker output files.
+
+Pretty straight-forward: `range(n_jobs)` goes from 0 to `n_jobs`, so `i_job` iterates over these values. The task `worker`
+has the following command section:
+
+```shell
+    echo "Hello, world, this is job ~{i_job}!" > ~{out_file_name}
+```
+
+This is all very straight-forward, until `n_jobs` becomes large and incurs an unacceptable overhead.
+
