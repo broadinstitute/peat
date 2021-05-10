@@ -6,6 +6,22 @@ Peat can easily play the role of a sub-contractor in a WDL workflow to reduce sc
 but don't want to run 10,000 machines, you can use WDL to run 200 machines and use Peat to then run 50 jobs on each
 machine. Peat makes it especially easy to make sure that each of the 10,000 jobs is actually run and only run once.
 
+## Usage
+
+```
+USAGE:
+    peat [FLAGS] [peat file]
+
+FLAGS:
+    -d, --dry-run       Parse and evaluate expressions, but do not actually run jobs.
+    -r, --parse-only    Parse only. Do not evaluate expressions and do not run jobs.
+    -h, --help          Prints help information
+    -V, --version       Prints version information
+
+ARGS:
+    <peat file>
+```
+
 ## Get Peat
 
 To get the Peat source code, clone the [Peat repo](https://github.com/broadinstitute/peat):
