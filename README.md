@@ -292,8 +292,8 @@ member of the second range. The result is { 0: { 0, 1, 2, 3 }, 1: { 4, 5, 6 }, 2
 Then we apply the pick operator `$` which picks the subrange of the given index, here 1, so the result is the numbers 4,
 5 and 6, or written as range, `4 .. 7`.
 
-To get the same results, but be more flexible and more self-commenting, we replace constants by variables in `examples/pick2.peat`. By using variables, we also make it more
-easy to embed into a larger context, such as WDL:
+To get the same results, but be more flexible and more self-commenting, we replace constants by variables
+in `examples/pick2.peat`. By using variables, we also make it more easy to embed into a larger context, such as WDL:
 
 ```
 Peat 1.0
@@ -356,4 +356,12 @@ Process completed successfully.
 Done!
 ```
 
+## Docker images
 
+Peat 1.0.0 is available as Docker image for Alpine and Ubuntu:
+
+- Alpine 3.13: `gcr.io/nitrogenase-docker/peat:1.0.0-alpine`
+- Ubuntu 21.04: `gcr.io/nitrogenase-docker/peat:1.0.0-ubuntu`
+
+Other images may be available upon request, or create take inspiration from
+the [Dockerfiles in Peat repo](https://github.com/broadinstitute/peat/tree/main/docker) to make your own.

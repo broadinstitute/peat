@@ -4,16 +4,17 @@ WORKDIR build_peat
 RUN mkdir git && \
     cd git && \
     git clone https://github.com/broadinstitute/peat.git && \
-    git checkout v1.0.0-RC1  && \
     cd peat && \
-    cargo build --release --root ../..  && \
+    git checkout v1.0.0  && \
+    cargo build --release && \
+    mv target/release/peat ../../peat  && \
     cd ../..  && \
     rm -r git
 
 FROM ubuntu:21.04
 
-RUN apt-get update && \
-    apt-get upgrade && \
+RUN apt-get -y update && \
+    apt-get -y upgrade && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=builder /build_peat/peat /usr/local/bin/peat
 
