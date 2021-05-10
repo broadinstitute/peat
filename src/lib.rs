@@ -7,7 +7,7 @@ use crate::config::Config;
 pub mod util;
 mod code;
 mod substitute;
-mod bash;
+mod sh;
 mod script_files;
 mod config;
 
@@ -45,7 +45,7 @@ fn run(peat_config: Config) -> Result<(), Error> {
             if !peat_config.dry_run {
                 let script_path = script_name_gen.next();
                 let body_resolved = substitute::substitute(&peat_code.body, &bindings)?;
-                match bash::run_bash_script(script_path.as_path(), &body_resolved) {
+                match sh::run_sh_script(script_path.as_path(), &body_resolved) {
                     Ok(_) => { println!("Process completed successfully.") }
                     Err(error) => { eprintln!("Process failed: {}", error) }
                 }

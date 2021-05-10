@@ -4,10 +4,10 @@ use crate::util::error::Error;
 use std::process::Command;
 use std::path::Path;
 
-pub(crate) fn run_bash_script(script_path: &Path, content: &str) -> Result<(), Error> {
+pub(crate) fn run_sh_script(script_path: &Path, content: &str) -> Result<(), Error> {
     let mut file = File::create(script_path)?;
     file.write_all(content.as_ref())?;
-    let mut cmd = Command::new("bash");
+    let mut cmd = Command::new("sh");
     let cmd_with_arg = cmd.arg(script_path);
     let mut child = cmd_with_arg.spawn()?;
     let status = child.wait()?;

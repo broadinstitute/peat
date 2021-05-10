@@ -10,14 +10,14 @@ machine. Peat makes it especially easy to make sure that each of the 10,000 jobs
 
 To get the Peat source code, clone the [Peat repo](https://github.com/broadinstitute/peat):
 
-```bash
+```shell
 git clone https://github.com/broadinstitute/peat.git
 cd peat
 ```
 
 To use Version 1.0.0:
 
-```bash
+```shell
 git checkout v1.0.0
 ```
 
@@ -25,7 +25,7 @@ Peat is written in [Rust](https://www.rust-lang.org/). To
 compile, [install the Rust toolchain](https://www.rust-lang.org/tools/install), go to the `peat` directory and compile
 using:
 
-```bash
+```shell
 cargo build --release
 ```
 
@@ -44,12 +44,12 @@ echo "Hello, World!"
 
 Each Peat file has divider - the first line that contains just `===`. Everything before that is the head, which starts
 with the version line `Peat 1.0`, followed optionally by declarations, one per line (more later). Everything after the
-divider is the body, which is a template for a Bash script. Here, the Bash script just contains the line with the `echo`
-. So, Peat will write that line to a script and then use Bash to execute it, printing the desired "Hello, world".
+divider is the body, which is a template for an `sh` script. Here, the script just contains the line with the `echo`
+. So, Peat will write that line to a script and then use `sh` to execute it, printing the desired "Hello, world".
 
 We run this with Peat:
 
-```bash
+```shell
 peat example/hello.peat
 ```
 
@@ -68,7 +68,7 @@ Done!
 Yay, we printed, "Hello, World".
 
 Instead of using a file, Peat can also read from standard input, so we can, for example, run Peat by providing the code
-via a heredoc in Bash:
+via a heredoc in `sh`:
 
 ```
 peat << EOF
@@ -241,7 +241,7 @@ to local disk 10,000 times.
 The only reasonable solution might be to divide the jobs into groups. For example, we could use scatter in WDL to fan
 out into 200 branches, which means 200 machines, and then run 50 jobs on each machine.
 
-In principle, this is easy. We could write a Bash script with a loop. In practice, it is awkward and easy to get wrong,
+In principle, this is easy. We could write a shell script with a loop. In practice, it is awkward and easy to get wrong,
 especially if we decide at some later point to change the number of jobs, or the number of machines.
 
 Peat has been designed to make this as easy as possible and blend well with WDL. The next section explains, how.
