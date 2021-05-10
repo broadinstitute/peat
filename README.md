@@ -369,30 +369,77 @@ the [Dockerfiles in Peat repo](https://github.com/broadinstitute/peat/tree/main/
 ## WDL scatter without Peat
 
 There is
-a [simple example of scatter in WDL without Peat in the Peat repo](https://github.com/broadinstitute/peat/blob/main/wdl/scatter_witout_peat.wdl)
-. For simplicity, the jobs to be scattered just write a line to a file. Here is the scatter clause:
+a [simple example of scatter in WDL without Peat in the Peat repo](https://github.com/broadinstitute/peat/blob/main/wdl/scatter_without_peat.wdl)
+. For simplicity, the jobs to be scattered each just write a line to a file, and then there is a final task to concat
+all files into a single file. Here is the scatter clause:
 
 ```
-    scatter(i_job in range(n_jobs)) {
-        String worker_out_file_name = worker_out_file_name_base + "." + i_job + ".txt"
-        call worker {
-            input:
-                i_job = i_job,
-                out_file_name = worker_out_file_name
-        }
+scatter(i_job in range(n_jobs)) {
+    String worker_out_file_name = worker_out_file_name_base + "." + i_job + ".txt"
+    call worker {
+        input:
+            i_job = i_job,
+            out_file_name = worker_out_file_name
     }
+}
 ```
 
-From inside the scatter block, `worker.out_file` refers to the output file of the worker and is of type `File`. 
-From outside
-the scatter block, on the other hand, `worker.outfile` is an `Array[File]` and refers to all worker output files.
+Pretty straight-forward: `range(n_jobs)` goes from 0 to `n_jobs`, so `i_job` iterates over these values.
 
-Pretty straight-forward: `range(n_jobs)` goes from 0 to `n_jobs`, so `i_job` iterates over these values. The task `worker`
-has the following command section:
+From inside the scatter block, `worker.out_file` refers to the output file of the current worker and is of type `File`.
+From outside the scatter block, on the other hand, `worker.outfile` is an `Array[File]` and refers to all worker output
+files, so the final task takes an array of files as input.
+
+The task `worker`has the following command section:
 
 ```shell
-    echo "Hello, world, this is job ~{i_job}!" > ~{out_file_name}
+echo "Hello, world, this is job ~{i_job}!" > ~{out_file_name}
 ```
 
-This is all very straight-forward, until `n_jobs` becomes large and incurs an unacceptable overhead.
+This is all very straight-forward, until `n_jobs` becomes large and incurs an unacceptable overhead. Then, Peat to the
+rescue.
 
+## WDL scatter with Peat
+
+Finally, we
+have [a version of the workflow above with Peat](https://github.com/broadinstitute/peat/blob/main/wdl/scatter_with_peat.wdl)
+.
+
+Now, we specify both the number of jobs (`n_jobs`) and the number of groups (`n_groups`).
+
+The scatter clause now goes over groups instead of jobs:
+
+```
+scatter(i_group in range(n_groups)) {
+    call worker {
+        input:
+            n_jobs = n_jobs,
+            n_groups = n_groups,
+            i_group = i_group,
+            out_file_prefix = worker_out_file_prefix,
+            out_file_suffix = worker_out_file_suffix,
+    }
+}
+```
+
+The command section of the task now is an invocation of Peat with a heredoc to run the payload job multiple times:
+
+```shell
+peat << EOF
+Peat 1.0
+N_JOBS = ~{n_jobs}
+N_GROUPS = ~{n_groups}
+I_GROUP = ~{i_group}
+I <- 0 .. N_JOBS / 0 .. N_GROUPS $ I_GROUP
+===
+echo "Hello, world, this is job <:I:> from group <:I_GROUP:>!" \
+       > ~{out_file_prefix}<:I:>~{out_file_suffix}
+EOF
+```
+
+Another change is that instead of a single output file `worker.out_file`, we now have multiple output files per
+call, `worker.out_files`. As seen from within the scatter branch, `worker.out_files` is an array of files (`Array[File]`). From outside the scatter branch, `worker.out_files` is
+actually an array of arrays of files (`Array[Array[File]]`). To get back a simple array of files (`Array[File]`), we
+use `flatten(worker.out_files)` outside the scatter block.
+
+The final task that concats all files into one remains the same.

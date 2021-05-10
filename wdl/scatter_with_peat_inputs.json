@@ -1,0 +1,6 @@
+{
+  "echo.n_jobs": 10,
+  "echo.n_groups": 3,
+  "echo.out_file_name": "all_jobs.txt"
+}
+

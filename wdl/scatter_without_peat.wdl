@@ -27,7 +27,7 @@ task worker {
         String out_file_name
     }
     runtime {
-        docker: "alpine:3.13.5"
+        docker: "ubuntu:21.04"
     }
     command <<<
         echo "Hello, world, this is job ~{i_job}!" > ~{out_file_name}
@@ -43,10 +43,10 @@ task reducer {
         String out_file_name
     }
     runtime {
-        docker: "alpine:3.13.5"
+        docker: "ubuntu:21.04"
     }
     command <<<
-        cat ~{in_files} > ~{out_file_name}
+        cat ~{sep=' ' in_files} > ~{out_file_name}
     >>>
     output {
         File out_file = out_file_name
