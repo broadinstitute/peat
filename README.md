@@ -2,22 +2,24 @@
 
 Peat is a command-line app to run another command-line app of your choice repeatedly with different parameters.
 
-Peat can easily play the role of [a sub-contractor in a WDL workflow](#wdl_scatter_with_peat) to reduce scatter overhead: if you have 10,000 jobs,
-but don't want to run 10,000 machines, you can use WDL to run 200 machines and use Peat to then run 50 jobs on each
-machine. Peat makes it especially easy to make sure that each of the 10,000 jobs is actually run and only run once.
+Peat can easily play the role of [a sub-contractor in a WDL workflow](#wdl_scatter_with_peat) to reduce scatter
+overhead: if you have 10,000 jobs, but don't want to run 10,000 machines, you can use WDL to run 200 machines and use
+Peat to then run 50 jobs on each machine. Peat makes it especially easy to make sure that each of the 10,000 jobs is
+actually run and only run once.
 
 ## Table of Contents
 
- * [Usage](#usage)
- * [Get Peat](#get_peat)
- * [Hello, world!](#hello)
- * [Variables](#variables)
- * [Ranges and iterations](#iterate)
- * [Why distribute jobs into groups?](#why_groups)
- * [Grouping ranges and picking a group](#picking)
- * [Docker images](#docker)
- * [WDL scatter without Peat](#wdl_scatter_without_peat)
- * [WDL scatter with Peat](#wdl_scatter_with_peat)
+* [Usage](#usage)
+* [Get Peat](#get_peat)
+* [Hello, world!](#hello)
+* [Variables](#variables)
+* [Ranges and iterations](#iterate)
+* [Why distribute jobs into groups?](#why_groups)
+* [Grouping ranges and picking a group](#picking)
+* [Docker images](#docker)
+* [WDL scatter without Peat](#wdl_scatter_without_peat)
+* [WDL scatter with Peat](#wdl_scatter_with_peat)
+* [Peat Demo Terra Workspace](#workspace)
 
 ## <a name="usage">Usage</a>
 
@@ -277,7 +279,7 @@ especially if we decide at some later point to change the number of jobs, or the
 
 Peat has been designed to make this as easy as possible and blend well with WDL. The next section explains, how.
 
-## <a href="picking">Grouping ranges and picking a group</a>
+## <a name="picking">Grouping ranges and picking a group</a>
 
 The next example divides a range into groups and then picks a group. It is `examples/pick1.peat`:
 
@@ -430,7 +432,8 @@ echo "Hello, world, this is job ~{i_job}!" > ~{out_file_name}
 This is all very straight-forward, until `n_jobs` becomes large and incurs an unacceptable overhead. Then, Peat to the
 rescue.
 
-[This workflow is also available on Terra](https://portal.firecloud.org/?return=terra#methods/tidal-waves/ScatterWithoutPeat/).
+[This workflow is also available on Terra](https://portal.firecloud.org/?return=terra#methods/tidal-waves/ScatterWithoutPeat/)
+.
 
 ## <a name="wdl_scatter_with_peat">WDL scatter with Peat</a>
 
@@ -471,10 +474,17 @@ EOF
 ```
 
 Another change is that instead of a single output file `worker.out_file`, we now have multiple output files per
-call, `worker.out_files`. As seen from within the scatter branch, `worker.out_files` is an array of files (`Array[File]`). From outside the scatter branch, `worker.out_files` is
-actually an array of arrays of files (`Array[Array[File]]`). To get back a simple array of files (`Array[File]`), we
-use `flatten(worker.out_files)` outside the scatter block.
+call, `worker.out_files`. As seen from within the scatter branch, `worker.out_files` is an array of
+files (`Array[File]`). From outside the scatter branch, `worker.out_files` is actually an array of arrays of
+files (`Array[Array[File]]`). To get back a simple array of files (`Array[File]`), we use `flatten(worker.out_files)`
+outside the scatter block.
 
 The final task that concats all files into one remains the same.
 
-[This workflow is also available on Terra](https://portal.firecloud.org/?return=terra#methods/tidal-waves/ScatterWithPeat/).
+[This workflow is also available on Terra](https://portal.firecloud.org/?return=terra#methods/tidal-waves/ScatterWithPeat/)
+.
+
+## <a name="workspace">Peat Demo Terra Workspace</a>
+
+We also have a workspace on Terra to [Demo Peat](https://app.terra.bio/#workspaces/tidal-waves/Peat%20demo), containing
+the workflows above. 
