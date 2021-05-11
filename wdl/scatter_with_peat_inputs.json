@@ -1,5 +1,5 @@
 {
-  "echo.n_jobs": 10000,
+  "echo.n_jobs": 1000,
   "echo.n_groups": 50,
   "echo.out_file_name": "all_jobs.txt"
 }
