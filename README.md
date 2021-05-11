@@ -2,11 +2,24 @@
 
 Peat is a command-line app to run another command-line app of your choice repeatedly with different parameters.
 
-Peat can easily play the role of a sub-contractor in a WDL workflow to reduce scatter overhead: if you have 10,000 jobs,
+Peat can easily play the role of [a sub-contractor in a WDL workflow](#wdl_scatter_with_peat) to reduce scatter overhead: if you have 10,000 jobs,
 but don't want to run 10,000 machines, you can use WDL to run 200 machines and use Peat to then run 50 jobs on each
 machine. Peat makes it especially easy to make sure that each of the 10,000 jobs is actually run and only run once.
 
-## Usage
+## Table of Contents
+
+ * [Usage](#usage)
+ * [Get Peat](#get_peat)
+ * [Hello, world!](#hello)
+ * [Variables](#variables)
+ * [Ranges and iterations](#iterate)
+ * [Why distribute jobs into groups?](#why_groups)
+ * [Grouping ranges and picking a group](#picking)
+ * [Docker images](#docker)
+ * [WDL scatter without Peat](#wdl_scatter_without_peat)
+ * [WDL scatter with Peat](#wdl_scatter_with_peat)
+
+## <a name="usage">Usage</a>
 
 ```
 USAGE:
@@ -22,7 +35,9 @@ ARGS:
     <peat file>
 ```
 
-## Get Peat
+## <a name="get_peat">Get Peat</a>
+
+You can use one of our [Docker images](#docker) or build Peat yourself.
 
 To get the Peat source code, clone the [Peat repo](https://github.com/broadinstitute/peat):
 
@@ -47,7 +62,7 @@ cargo build --release
 
 The peat binary will be in `target/release/peat`.
 
-## Hello, World!
+## <a name="hello">Hello, World!</a>
 
 To print "Hello, world!" to the console, without repetition, we can use the file `example/hello.peat` in
 the [Peat repo](https://github.com/broadinstitute/peat):
@@ -108,7 +123,7 @@ EOF
 
 To do something more interesting, we need to declare variables.
 
-## Variables
+## <a name="variables">Variables</a>
 
 Next, we look at `examples/declarations.peat`:
 
@@ -149,7 +164,7 @@ Done!
 
 So far, Peat has only executed one script per invocation. Next, we will let Peat iterate.
 
-## Ranges and iterations
+## <a name="iterate">Ranges and iterations</a>
 
 Next, let us look at `examples/range.peat`:
 
@@ -244,7 +259,7 @@ We could easily tell Peat to iterate over 10,000 jobs in one call.
 
 If that is too much for one call, we will see how to distribute the jobs into groups in the next sections.
 
-## Why distribute jobs into groups?
+## <a name="why_groups">Why distribute jobs into groups?</a>
 
 Peat can help distribute jobs.
 
@@ -262,7 +277,7 @@ especially if we decide at some later point to change the number of jobs, or the
 
 Peat has been designed to make this as easy as possible and blend well with WDL. The next section explains, how.
 
-## Grouping ranges and picking a group
+## <a href="picking">Grouping ranges and picking a group</a>
 
 The next example divides a range into groups and then picks a group. It is `examples/pick1.peat`:
 
@@ -372,7 +387,7 @@ Process completed successfully.
 Done!
 ```
 
-## Docker images
+## <a name="docker">Docker images</a>
 
 Peat 1.0.0 is available as Docker image for Alpine and Ubuntu:
 
@@ -382,9 +397,9 @@ Peat 1.0.0 is available as Docker image for Alpine and Ubuntu:
 Other images may be available upon request, or create take inspiration from
 the [Dockerfiles in Peat repo](https://github.com/broadinstitute/peat/tree/main/docker) to make your own.
 
-## WDL scatter without Peat
+## <a name="wdl_scatter_without_peat">WDL scatter without Peat</a>
 
-There is
+We have
 a [simple example of scatter in WDL without Peat in the Peat repo](https://github.com/broadinstitute/peat/blob/main/wdl/scatter_without_peat.wdl)
 . For simplicity, the jobs to be scattered each just write a line to a file, and then there is a final task to concat
 all files into a single file. Here is the scatter clause:
@@ -415,7 +430,9 @@ echo "Hello, world, this is job ~{i_job}!" > ~{out_file_name}
 This is all very straight-forward, until `n_jobs` becomes large and incurs an unacceptable overhead. Then, Peat to the
 rescue.
 
-## WDL scatter with Peat
+[This workflow is also available on Terra](https://portal.firecloud.org/?return=terra#methods/tidal-waves/ScatterWithoutPeat/).
+
+## <a name="wdl_scatter_with_peat">WDL scatter with Peat</a>
 
 Finally, we
 have [a version of the workflow above with Peat](https://github.com/broadinstitute/peat/blob/main/wdl/scatter_with_peat.wdl)
@@ -459,3 +476,5 @@ actually an array of arrays of files (`Array[Array[File]]`). To get back a simpl
 use `flatten(worker.out_files)` outside the scatter block.
 
 The final task that concats all files into one remains the same.
+
+[This workflow is also available on Terra](https://portal.firecloud.org/?return=terra#methods/tidal-waves/ScatterWithPeat/).
