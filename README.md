@@ -1,5 +1,6 @@
-<img src="logo/peat.png" align="right">
 # Peat
+
+<img src="logo/peat.png" align="right">
 
 Peat is a command-line app to run another command-line app of your choice repeatedly with different parameters.
 
