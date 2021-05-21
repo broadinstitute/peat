@@ -488,5 +488,5 @@ The final task that concats all files into one remains the same.
 
 ## <a name="workspace">Peat Demo Terra Workspace</a>
 
-We also have a workspace on Terra to [Demo Peat](https://app.terra.bio/#workspaces/tidal-waves/Peat%20demo), containing
+We also have a workspace on Terra to [Demo Peat](https://app.terra.bio/#workspaces/tidal-waves/Peat-Demo), containing
 the workflows above. 
